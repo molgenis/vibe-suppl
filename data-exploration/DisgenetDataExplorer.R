@@ -210,21 +210,26 @@ imgExportDir <- '~/Documents/afstuderen/verslag/img/'
 # For reading in files:
 # Disabled quoting as otherwise not all lines are read ('EOF within quoted string').
 # Disabled comment character as some sentences could contain a #, making a row missing columns.
+
+# Loads gene disease pmid association file and creates second variable for phenotype-only associations.
 geneDiseasePmidAssociations <- read.table(gzfile(paste0(baseDir, 'all_gene_disease_pmid_associations.tsv.gz')),
                                           header=T, sep='\t', quote="", comment.char="")
-geneDiseasePmidFenotypeAssociations <- geneDiseasePmidAssociations[geneDiseasePmidAssociations$diseaseType == 'phenotype',]
+geneDiseasePmidPhenotypeAssociations <- geneDiseasePmidAssociations[geneDiseasePmidAssociations$diseaseType == 'phenotype',]
 
 # Merges the counts per source in non-NA's and NA's + adds a total column.
 countsPerSource <- ddply(geneDiseasePmidAssociations, .(source=originalSource), summarize,
                          countPmid=sum(!is.na(pmid)), countNA=sum(is.na(pmid)))
 countsPerSource <- sumCounts(countsPerSource)
-countsPerSource.phenotype <- ddply(geneDiseasePmidFenotypeAssociations, .(source=originalSource), summarize,
+countsPerSource.phenotype <- ddply(geneDiseasePmidPhenotypeAssociations, .(source=originalSource), summarize,
                                    countPmid=sum(!is.na(pmid)), countNA=sum(is.na(pmid)))
 countsPerSource.phenotype <- sumCounts(countsPerSource.phenotype)
 
 # Adds the levels to the data.
 countsPerSource <- addLevels(countsPerSource)
 countsPerSource.phenotype <- addLevels(countsPerSource.phenotype)
+
+
+
 
 ######## 
 ######## Plots the number of non-NA and NA associations per source.
