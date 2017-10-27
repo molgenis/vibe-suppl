@@ -56,7 +56,7 @@ sumCounts <- function(data) {
 # N.A. (a plot is generated)
 ########
 plotPmids <- function(plotTitle, data) {
-  par(mar=c(7, 4, 4, 2) + 0.1)
+  par(mar=c(7, 4, 1, 0) + 0.1)
   dataToPlot <- log10(t(data[,c('countPmid', 'countNA')]))
   xLabels <- data$source
   barColors <- c('steelblue4', 'slategray2')
@@ -157,7 +157,7 @@ plotAssociationsPerSourceAndLevel <- function(plotTitle, sourceData, levelData,
   sourceColors <- brewer.pal(nrow(sourceData), 'Set3')
   levelColors <- brewer.pal(nrow(levelData), 'Dark2')
   
-  par(mar=c(2, 4, 4, 2) + 0.1)
+  par(mar=c(1.5, 0, 0, 0) + 0.1)
   # Create empty pie chart.
   pie(1, col=c('white'), border = NA, labels='', main=plotTitle)
   
@@ -183,9 +183,9 @@ plotAssociationsPerSourceAndLevel <- function(plotTitle, sourceData, levelData,
   
   # Adds legends to pie chart.
   text(0.8,0.3, 'Sources', pos=4, font=2)
-  legend(0.8,0.3, sourceData$source[sourceData$countTotal > 0], fill=sourceColors, border=NA, bty = "n")
+  legend(0.8,0.3, sourceData$source[sourceData$countTotal > 0], fill=sourceColors, bty = "n")
   text(0.8,0.9, 'Levels', pos=4, font=2)
-  legend(0.8,0.9, levelData$level[levelData$countTotal > 0], fill=levelColors, border=NA, bty = "n")
+  legend(0.8,0.9, levelData$level[levelData$countTotal > 0], fill=levelColors, bty = "n")
   
   # Calculates, formats and adds total to the pie chart.
   total <- format(sum(sourceData$countTotal), big.mark = '.',
@@ -247,12 +247,12 @@ nrow(variantDiseasePmidPhenotypeAssociations)
 ######## 
 ######## Plots the number of non-NA and NA associations per source.
 ########
-postscript(paste0(imgExportDir, 'pubmed-count-per-source-all.eps'), width=7, height=5)
-plotPmids('Total number of gene associations per source', countsPerSource)
+postscript(paste0(imgExportDir, 'pubmed-count-per-source-all.eps'), width=7, height=4)
+plotPmids('', countsPerSource)
 dev.off()
 
-postscript(paste0(imgExportDir, 'pubmed-count-per-source-phenotype.eps'), width=7, height=5)
-plotPmids('Total number of gene-phenotype associations per source', countsPerSource.phenotype)
+postscript(paste0(imgExportDir, 'pubmed-count-per-source-phenotype.eps'), width=7, height=4)
+plotPmids('', countsPerSource.phenotype)
 dev.off()
 
 ######## 
@@ -271,8 +271,8 @@ MergedCountsPerSource <- arrange(MergedCountsPerSource, level)
 MergedCountsPerSource.phenotype <- arrange(MergedCountsPerSource.phenotype, level)
 
 # Generates plots.
-postscript(paste0(imgExportDir, 'gene-associations.eps'), width=10, height=7)
-plotAssociationsPerSourceAndLevel('number of gene associations within DisGeNET 5.0',
+postscript(paste0(imgExportDir, 'gene-associations.eps'), width=8, height=4.5)
+plotAssociationsPerSourceAndLevel('',
                                   MergedCountsPerSource, countsPerLevel,
                                   outerRadius=c(0.9, 0.84, 0.76, 0.68, 0.8, 0.7, 0.79),
                                   innerRadius=c(0.35,0.25,0.15),
@@ -282,11 +282,11 @@ plotAssociationsPerSourceAndLevel('number of gene associations within DisGeNET 5
                                   innerAngleAdjust=-0.08)
 dev.off()
 
-postscript(paste0(imgExportDir, 'gene-phenotype-associations.eps'), width=10, height=7)
-plotAssociationsPerSourceAndLevel('number of gene-phenotype associations within DisGeNET 5.0',
+postscript(paste0(imgExportDir, 'gene-phenotype-associations.eps'), width=8, height=4.5)
+plotAssociationsPerSourceAndLevel('',
                                   MergedCountsPerSource.phenotype, countsPerLevel.phenotype,
-                                  outerRadius=c(0.9, 0.65, 0.85, 0.7, 0.55, 0.7, 0.7, 0.75),
+                                  outerRadius=c(0.9, 0.65, 0.85, 0.6, 0.7, 0.7, 0.75),
                                   innerRadius=c(0.2,0.3,0.15),
-                                  outerAngles=c(3,4,5),
-                                  outerAngleAdjust=c(-0.05,0.02,0.1))
+                                  outerAngles=c(3,4),
+                                  outerAngleAdjust=c(-0.05,0.1))
 dev.off()
