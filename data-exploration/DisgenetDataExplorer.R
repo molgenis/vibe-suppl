@@ -198,6 +198,7 @@ plotAssociationsPerSourceAndLevel <- function(plotTitle, sourceData, levelData,
 
 # Defaults
 oldPar <- par()
+setEPS() # Sets EPS engine for writing images.
 
 ######## 
 ######## Initial data loading/processing.
@@ -244,11 +245,11 @@ nrow(variantDiseasePmidPhenotypeAssociations)
 ######## 
 ######## Plots the number of non-NA and NA associations per source.
 ########
-pdf(paste0(imgExportDir, 'pubmed-count-per-source-all.pdf'), 7,5)
+postscript(paste0(imgExportDir, 'pubmed-count-per-source-all.pdf'), width=7, height=5)
 plotPmids('Total number of gene associations per source', countsPerSource)
 dev.off()
 
-pdf(paste0(imgExportDir, 'pubmed-count-per-source-phenotype.pdf'), 7,5)
+pdf(paste0(imgExportDir, 'pubmed-count-per-source-phenotype.pdf'), width=7, height=5)
 plotPmids('Total number of gene-phenotype associations per source', countsPerSource.phenotype)
 dev.off()
 
@@ -268,7 +269,7 @@ MergedCountsPerSource <- arrange(MergedCountsPerSource, level)
 MergedCountsPerSource.phenotype <- arrange(MergedCountsPerSource.phenotype, level)
 
 # Generates plots.
-pdf(paste0(imgExportDir, 'gene-associations.pdf'), 9,7)
+postscript(paste0(imgExportDir, 'gene-associations.eps'), width=9, height=7)
 plotAssociationsPerSourceAndLevel('number of gene associations within DisGeNET 5.0',
                                   MergedCountsPerSource, countsPerLevel,
                                   outerRadius=c(0.9, 0.84, 0.76, 0.68, 0.8, 0.7, 0.79),
@@ -279,7 +280,7 @@ plotAssociationsPerSourceAndLevel('number of gene associations within DisGeNET 5
                                   innerAngleAdjust=-0.08)
 dev.off()
 
-pdf(paste0(imgExportDir, 'gene-phenotype-associations.pdf'), 9,7)
+postscript(paste0(imgExportDir, 'gene-phenotype-associations.eps'), width=9, height=7)
 plotAssociationsPerSourceAndLevel('number of gene-phenotype associations within DisGeNET 5.0',
                                   MergedCountsPerSource.phenotype, countsPerLevel.phenotype,
                                   outerRadius=c(0.9, 0.65, 0.85, 0.7, 0.55, 0.7, 0.7, 0.75),
