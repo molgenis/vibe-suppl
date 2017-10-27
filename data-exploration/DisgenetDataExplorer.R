@@ -65,6 +65,7 @@ plotPmids <- function(plotTitle, data) {
           ylab='number of associations (log10)')
   mtext('source', side=1, line=6)
   legend(28,ceiling(max(dataToPlot)), c('with pmid', 'without pmid'), fill=barColors, bty = "n")
+  par(oldPar)
 }
 
 ########
@@ -156,6 +157,7 @@ plotAssociationsPerSourceAndLevel <- function(plotTitle, sourceData, levelData,
   sourceColors <- brewer.pal(nrow(sourceData), 'Set3')
   levelColors <- brewer.pal(nrow(levelData), 'Dark2')
   
+  par(mar=c(2, 4, 4, 2) + 0.1)
   # Create empty pie chart.
   pie(1, col=c('white'), border = NA, labels='', main=plotTitle)
   
@@ -189,8 +191,8 @@ plotAssociationsPerSourceAndLevel <- function(plotTitle, sourceData, levelData,
   total <- format(sum(sourceData$countTotal), big.mark = '.',
                   decimal.mark=',', trim=T)
   mtext(paste('Total:', total), side=1, at=-0.6)
+  par(oldPar)
 }
-
 
 ##################
 ###    Code    ###
@@ -245,11 +247,11 @@ nrow(variantDiseasePmidPhenotypeAssociations)
 ######## 
 ######## Plots the number of non-NA and NA associations per source.
 ########
-postscript(paste0(imgExportDir, 'pubmed-count-per-source-all.pdf'), width=7, height=5)
+postscript(paste0(imgExportDir, 'pubmed-count-per-source-all.eps'), width=7, height=5)
 plotPmids('Total number of gene associations per source', countsPerSource)
 dev.off()
 
-pdf(paste0(imgExportDir, 'pubmed-count-per-source-phenotype.pdf'), width=7, height=5)
+postscript(paste0(imgExportDir, 'pubmed-count-per-source-phenotype.eps'), width=7, height=5)
 plotPmids('Total number of gene-phenotype associations per source', countsPerSource.phenotype)
 dev.off()
 
@@ -269,7 +271,7 @@ MergedCountsPerSource <- arrange(MergedCountsPerSource, level)
 MergedCountsPerSource.phenotype <- arrange(MergedCountsPerSource.phenotype, level)
 
 # Generates plots.
-postscript(paste0(imgExportDir, 'gene-associations.eps'), width=9, height=7)
+postscript(paste0(imgExportDir, 'gene-associations.eps'), width=10, height=7)
 plotAssociationsPerSourceAndLevel('number of gene associations within DisGeNET 5.0',
                                   MergedCountsPerSource, countsPerLevel,
                                   outerRadius=c(0.9, 0.84, 0.76, 0.68, 0.8, 0.7, 0.79),
@@ -280,7 +282,7 @@ plotAssociationsPerSourceAndLevel('number of gene associations within DisGeNET 5
                                   innerAngleAdjust=-0.08)
 dev.off()
 
-postscript(paste0(imgExportDir, 'gene-phenotype-associations.eps'), width=9, height=7)
+postscript(paste0(imgExportDir, 'gene-phenotype-associations.eps'), width=10, height=7)
 plotAssociationsPerSourceAndLevel('number of gene-phenotype associations within DisGeNET 5.0',
                                   MergedCountsPerSource.phenotype, countsPerLevel.phenotype,
                                   outerRadius=c(0.9, 0.65, 0.85, 0.7, 0.55, 0.7, 0.7, 0.75),
