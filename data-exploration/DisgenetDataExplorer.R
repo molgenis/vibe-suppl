@@ -228,8 +228,18 @@ countsPerSource.phenotype <- sumCounts(countsPerSource.phenotype)
 countsPerSource <- addLevels(countsPerSource)
 countsPerSource.phenotype <- addLevels(countsPerSource.phenotype)
 
+# Loads gene disease pmid association file and creates second variable for phenotype-only associations.
+variantDiseasePmidAssociations <- read.table(gzfile(paste0(baseDir, 'all_variant_disease_pmid_associations.tsv.gz')),
+                                             header=T, sep='\t', quote="", comment.char="")
+variantDiseasePmidPhenotypeAssociations <- variantDiseasePmidAssociations[variantDiseasePmidAssociations$diseaseType == 'phenotype',]
 
-
+######## 
+######## Shows number of associations per 
+########
+nrow(geneDiseasePmidAssociations)
+nrow(geneDiseasePmidPhenotypeAssociations)
+nrow(variantDiseasePmidAssociations)
+nrow(variantDiseasePmidPhenotypeAssociations)
 
 ######## 
 ######## Plots the number of non-NA and NA associations per source.
