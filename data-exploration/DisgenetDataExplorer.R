@@ -231,18 +231,43 @@ countsPerSource.phenotype <- sumCounts(countsPerSource.phenotype)
 countsPerSource <- addLevels(countsPerSource)
 countsPerSource.phenotype <- addLevels(countsPerSource.phenotype)
 
-# Loads gene disease pmid association file and creates second variable for phenotype-only associations.
+# Loads variant disease pmid association file and creates second variable for phenotype-only associations.
 variantDiseasePmidAssociations <- read.table(gzfile(paste0(baseDir, 'all_variant_disease_pmid_associations.tsv.gz')),
                                              header=T, sep='\t', quote="", comment.char="")
 variantDiseasePmidPhenotypeAssociations <- variantDiseasePmidAssociations[variantDiseasePmidAssociations$diseaseType == 'phenotype',]
 
+# Loads association files created using bash from the "all_gene_disease_pmid_associations.tsv.gz" file.
+geneDiseaseAssociations <- read.table(gzfile(paste0(baseDir, 'complete_gene_disease_associations.tsv.gz')),
+                                      header=T, sep='\t', quote="", comment.char="")
+phenotypeDiseaseAssociations <- read.table(gzfile(paste0(baseDir, 'complete_gene_phenotype_associations.tsv.gz')),
+                                           header=T, sep='\t', quote="", comment.char="")
+
+
+
 ######## 
-######## Shows number of associations per 
+######## Shows the number of (phenotype) gene/variant pmid associations.
 ########
 nrow(geneDiseasePmidAssociations)
 nrow(geneDiseasePmidPhenotypeAssociations)
 nrow(variantDiseasePmidAssociations)
 nrow(variantDiseasePmidPhenotypeAssociations)
+
+######## 
+######## Shows number of unique genes for the associations.
+########
+uniqueDiseaseGenes <- length(unique(geneDiseaseAssociations$geneId))
+uniquePhenotypeGenes <- length(unique(phenotypeDiseaseAssociations$geneId))
+
+ylimTop <- ceiling(uniqueDiseaseGenes/1000)
+postscript(paste0(imgExportDir, 'unique-genes.eps'), width=5, height=7)
+barplot(c(uniqueDiseaseGenes, uniquePhenotypeGenes)/1000, ylim=c(0,ylimTop),
+        names.arg=c('any association', 'phenotype association'),
+        las=1, space=0, ylab='number of unique genes (per thousand)', col="steelblue4", axes=F)
+axis(2, at=0:ylimTop, labels=F)
+axis(2, las=1, tick=F, at=seq(0, ylimTop, 2))
+dev.off()
+
+rm(uniqueDiseaseGenes, uniquePhenotypeGenes, ylimTop)
 
 ######## 
 ######## Plots the number of non-NA and NA associations per source.
@@ -290,3 +315,7 @@ plotAssociationsPerSourceAndLevel('',
                                   outerAngles=c(3,4),
                                   outerAngleAdjust=c(-0.05,0.1))
 dev.off()
+
+######## 
+######## Plots the number of associations per unique gene.
+######## 
