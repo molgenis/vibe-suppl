@@ -13,7 +13,7 @@ Arguments:
 
 function main {
 	echo "Digesting command line..."
-  digestCommandLine $@
+	digestCommandLine $@
 	echo "Generating file containing all associations..."
 	digestFile $OUTPUT_FILE_ALL $".*"
 	echo "Generating file containing only phenotype associations..."
@@ -26,37 +26,37 @@ function digestCommandLine {
 	if [ $# -eq 0 ]; then errcho "No arguments were given.\n\n$USAGE"; exit 1; fi
 
 	#Digests the command line arguments.
-  while [[ $# -gt 0 ]]
-  do
-  key="$1"
-  case $key in
-      -p|--path)
-      DIR="$2"
-      shift # argument
-      shift # value
-      ;;
-      -h|--help)
-      HELP=TRUE
-      shift # argument
-      ;;
+	while [[ $# -gt 0 ]]
+	do
+		key="$1"
+		case $key in
+			-p|--path)
+			DIR="$2"
+			shift # argument
+			shift # value
+			;;
+			-h|--help)
+			HELP=TRUE
+			shift # argument
+			;;
 			*)    # unknown option
-    	shift # argument
-    	;;
-  esac
-  done
+			shift # argument
+			;;
+		esac
+	done
 
 	# Checks if usage is requested.
-  if [[ $HELP == TRUE ]]; then echo -e "$USAGE"; exit 0; fi
+	if [[ $HELP == TRUE ]]; then echo -e "$USAGE"; exit 0; fi
 
 	# Checks if DIR variable is set. -> http://wiki.bash-hackers.org/syntax/pe#use_an_alternate_value
 	if [[ ! ${DIR+isset} == isset ]]; then errcho "Missing required argument: -p/--path <path>\n\n$USAGE"; exit 1; fi
 
-  # Checks if given argument is an existing directory.
-  if [ ! -d "$DIR" ]; then errcho "Path is not an existing directory.\n\n$USAGE"; exit 1; fi
+	# Checks if given argument is an existing directory.
+	if [ ! -d "$DIR" ]; then errcho "Path is not an existing directory.\n\n$USAGE"; exit 1; fi
 
-  # Checks if directory contains required input file.
+	# Checks if directory contains required input file.
 	INPUT_FILE=$DIR/all_gene_disease_pmid_associations.tsv.gz
-  if [ ! -f "$INPUT_FILE" ]; then errcho "The file \"all_gene_disease_pmid_associations.tsv.gz\" could not be found in the given directory.\n\n$USAGE"; exit 1; fi
+	if [ ! -f "$INPUT_FILE" ]; then errcho "The file \"all_gene_disease_pmid_associations.tsv.gz\" could not be found in the given directory.\n\n$USAGE"; exit 1; fi
 
 	# Sets output files.
 	OUTPUT_FILE_ALL=$DIR/complete_gene_disease_associations.tsv
