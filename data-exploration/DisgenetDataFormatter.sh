@@ -2,7 +2,7 @@
 function errcho { echo -e "$@" 1>&2; }
 
 # Describes usage.
-USAGE="Usage: disgenet-data-formatter.sh -p <path> [-fh]
+USAGE="Usage: disgenet-data-formatter.sh -p <path> [-h]
 
 Description: Generates tsv files with the unique gene-disease associations from DisGeNET based on \"all_gene_disease_pmid_associations.tsv.gz\" (also includes the non-pmid associations).
 
