@@ -194,6 +194,41 @@ plotAssociationsPerSourceAndLevel <- function(plotTitle, sourceData, levelData,
   par(oldPar)
 }
 
+########
+# Name:
+# mergeValues
+#
+# Description:
+# Sums values in the defined slice sizes. If the last slice is smaller than the
+# slice size, these values are still treated as a single slice.
+#
+# Input:
+# data              - A vector containing integers.
+# sliceSize         - A single integer defining the size of the slices.
+#
+# Output:
+# A vector containing integer with labels describing the range each value is
+# created from.
+########
+mergeValues <- function(data, sliceSize) {
+  dataLength <- length(data)
+  fullSliceLimit <- dataLength - dataLength %% sliceSize
+  
+  resultData <- apply(matrix(data[1:fullSliceLimit], byrow=T, ncol=sliceSize), 1, sum)
+  resultLabels <- paste(seq(1, fullSliceLimit, sliceSize),
+                           seq(sliceSize, fullSliceLimit, sliceSize), sep='-')
+  
+  if(fullSliceLimit < dataLength) {
+    restData <- sum(data[(fullSliceLimit+1):dataLength])
+    resultData <- c(resultData,restData)
+    
+    restLabel <- paste(fullSliceLimit+1, dataLength, sep='-')
+    names(resultData) <- c(resultLabels, restLabel)
+  }
+  
+  return(resultData)
+}
+
 ##################
 ###    Code    ###
 ##################
@@ -317,5 +352,42 @@ plotAssociationsPerSourceAndLevel('',
 dev.off()
 
 ######## 
-######## Plots the number of associations per unique gene.
+######## Plots the number of associations per unique gene-disease combination.
 ########
+associationCounts <- tabulate(geneDiseaseAssociations$nAssociations)
+
+# If no 'BEFREE=' present, resulting output cannot be cast to an integer.
+# This means each NA is gene-disease combination WITHOUT a befree association.
+befreeAssociationCounts <- as.integer(gsub(";.*", "", gsub(".*BEFREE=", "", geneDiseaseAssociations$sources)))
+befreeAssociationCounts[which(is.na(befreeAssociationCounts))] <- 0 # Sets NAs to 0
+associationCountsWithoutBefree <- tabulate(geneDiseaseAssociations$nAssociations - befreeAssociationCounts)
+
+barColors <- c('steelblue4', 'slategray2')
+
+postscript(paste0(imgExportDir, 'associations_per_unique_gene_disease_combination.eps'), width=8, height=4.5)
+xLim <- 200
+barplot(log10(associationCounts[1:xLim]), ylim=c(0,6),
+        border=NA, col=barColors[2], space=0, las=1,
+        xlab='number of assocations',
+        ylab='number of unique gene-disease combinations (log10)')
+barplot(log10(associationCountsWithoutBefree[1:xLim]), ylim=c(0,6), border=NA,
+        col=barColors[1], space=0, las=1, add=T, yaxt='n')
+xLabels <- c(1,seq(20,xLim,20))
+axis(1, at=xLabels-0.5, xLabels)
+legend(140,6, c('without BeFree', 'with BeFree'), fill=barColors, bty = "n")
+dev.off()
+
+postscript(paste0(imgExportDir, 'associations_per_unique_gene_disease_combination_merged.eps'), width=8, height=4.5)
+dataToPlotWithBefree <- log10(mergeValues(associationCounts,200))
+dataToPlotWithoutBefree <- log10(mergeValues(associationCountsWithoutBefree,200))
+x <- barplot(dataToPlotWithBefree, ylim=c(0,6),
+        border=NA, col=barColors[2], las=1, xaxt='n',
+        ylab='number of unique gene-disease combinations (log10)')
+barplot(dataToPlotWithoutBefree, ylim=c(0,6), border=NA,
+        col=barColors[1], las=1, add=T, yaxt='n', xaxt='n')
+text(cex=1, x=x+0.5, y=-0.25, names(dataToPlotWithBefree), xpd=TRUE, srt=45, pos=2)
+mtext(side=1, line=4, 'number of assocations')
+legend(14,6, c('without BeFree', 'with BeFree'), fill=barColors, bty = "n")
+dev.off()
+
+rm(x, associationCounts, befreeAssociationCounts, associationCountsWithoutBefree, barColors, xLim)
