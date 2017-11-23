@@ -162,7 +162,7 @@ plotAssociationsPerSourceAndLevel <- function(plotTitle, sourceData, levelData,
   pie(1, col=c('white'), border = NA, labels='', main=plotTitle)
   
   # Adds the 2 layers to the pie chart.
-  outerAnglesValues <- floating.pie(-0.6,0, sourceData$countTotal, radius=1,
+  outerAngleValues <- floating.pie(-0.6,0, sourceData$countTotal, radius=1,
                                     border=NA, startpos = pi/2, col=sourceColors)
   innerAngleValues <- floating.pie(-0.6,0, levelData$countTotal, radius=0.5,
                                    border=NA, startpos = pi/2, col=levelColors)
@@ -174,11 +174,11 @@ plotAssociationsPerSourceAndLevel <- function(plotTitle, sourceData, levelData,
                              decimal.mark=',', trim=T)
   
   # Optional angle adjustments.
-  outerAnglesValues[outerAngles] <- outerAnglesValues[outerAngles] + outerAngleAdjust
+  outerAngleValues[outerAngles] <- outerAngleValues[outerAngles] + outerAngleAdjust
   innerAngleValues[innerAngles] <- innerAngleValues[innerAngles] + innerAngleAdjust
   
   # Adds numbers to pie chart.
-  pie.labels(-0.6,0, outerAnglesValues, outerLabelValues, radius=outerRadius)
+  pie.labels(-0.6,0, outerAngleValues, outerLabelValues, radius=outerRadius)
   pie.labels(-0.6,0, innerAngleValues, innerLabelValues, radius=innerRadius)
   
   # Adds legends to pie chart.
@@ -217,13 +217,13 @@ imgExportDir <- '~/Documents/afstuderen/verslag/img/'
 # Loads gene disease pmid association file and creates second variable for phenotype-only associations.
 geneDiseasePmidAssociations <- read.table(gzfile(paste0(baseDir, 'all_gene_disease_pmid_associations.tsv.gz')),
                                           header=T, sep='\t', quote="", comment.char="")
-geneDiseasePmidPhenotypeAssociations <- geneDiseasePmidAssociations[geneDiseasePmidAssociations$diseaseType == 'phenotype',]
+genePhenotypePmidAssociations <- geneDiseasePmidAssociations[geneDiseasePmidAssociations$diseaseType == 'phenotype',]
 
 # Merges the counts per source in non-NA's and NA's + adds a total column.
 countsPerSource <- ddply(geneDiseasePmidAssociations, .(source=originalSource), summarize,
                          countPmid=sum(!is.na(pmid)), countNA=sum(is.na(pmid)))
 countsPerSource <- sumCounts(countsPerSource)
-countsPerSource.phenotype <- ddply(geneDiseasePmidPhenotypeAssociations, .(source=originalSource), summarize,
+countsPerSource.phenotype <- ddply(genePhenotypePmidAssociations, .(source=originalSource), summarize,
                                    countPmid=sum(!is.na(pmid)), countNA=sum(is.na(pmid)))
 countsPerSource.phenotype <- sumCounts(countsPerSource.phenotype)
 
@@ -234,7 +234,7 @@ countsPerSource.phenotype <- addLevels(countsPerSource.phenotype)
 # Loads variant disease pmid association file and creates second variable for phenotype-only associations.
 variantDiseasePmidAssociations <- read.table(gzfile(paste0(baseDir, 'all_variant_disease_pmid_associations.tsv.gz')),
                                              header=T, sep='\t', quote="", comment.char="")
-variantDiseasePmidPhenotypeAssociations <- variantDiseasePmidAssociations[variantDiseasePmidAssociations$diseaseType == 'phenotype',]
+variantPhenotypePmidAssociations <- variantDiseasePmidAssociations[variantDiseasePmidAssociations$diseaseType == 'phenotype',]
 
 # Loads association files created using bash from the "all_gene_disease_pmid_associations.tsv.gz" file.
 geneDiseaseAssociations <- read.table(gzfile(paste0(baseDir, 'complete_gene_disease_associations.tsv.gz')),
@@ -248,15 +248,15 @@ genePhenotypeAssociations <- read.table(gzfile(paste0(baseDir, 'complete_gene_ph
 ######## Shows the number of (phenotype) gene/variant pmid associations.
 ########
 nrow(geneDiseasePmidAssociations)
-nrow(geneDiseasePmidPhenotypeAssociations)
+nrow(genePhenotypePmidAssociations)
 nrow(variantDiseasePmidAssociations)
-nrow(variantDiseasePmidPhenotypeAssociations)
+nrow(variantPhenotypePmidAssociations)
 
 ######## 
 ######## Shows number of unique genes for the associations.
 ########
-uniqueDiseaseGenes <- length(unique(geneDiseaseAssociations$geneId))
-uniquePhenotypeGenes <- length(unique(genePhenotypeAssociations$geneId))
+( uniqueDiseaseGenes <- length(unique(geneDiseaseAssociations$geneId)) )
+( uniquePhenotypeGenes <- length(unique(genePhenotypeAssociations$geneId)) )
 
 ylimTop <- ceiling(uniqueDiseaseGenes/1000)
 postscript(paste0(imgExportDir, 'unique-genes.eps'), width=5, height=7)
@@ -318,4 +318,4 @@ dev.off()
 
 ######## 
 ######## Plots the number of associations per unique gene.
-######## 
+########
