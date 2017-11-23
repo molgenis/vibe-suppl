@@ -239,7 +239,7 @@ variantDiseasePmidPhenotypeAssociations <- variantDiseasePmidAssociations[varian
 # Loads association files created using bash from the "all_gene_disease_pmid_associations.tsv.gz" file.
 geneDiseaseAssociations <- read.table(gzfile(paste0(baseDir, 'complete_gene_disease_associations.tsv.gz')),
                                       header=T, sep='\t', quote="", comment.char="")
-phenotypeDiseaseAssociations <- read.table(gzfile(paste0(baseDir, 'complete_gene_phenotype_associations.tsv.gz')),
+genePhenotypeAssociations <- read.table(gzfile(paste0(baseDir, 'complete_gene_phenotype_associations.tsv.gz')),
                                            header=T, sep='\t', quote="", comment.char="")
 
 
@@ -256,7 +256,7 @@ nrow(variantDiseasePmidPhenotypeAssociations)
 ######## Shows number of unique genes for the associations.
 ########
 uniqueDiseaseGenes <- length(unique(geneDiseaseAssociations$geneId))
-uniquePhenotypeGenes <- length(unique(phenotypeDiseaseAssociations$geneId))
+uniquePhenotypeGenes <- length(unique(genePhenotypeAssociations$geneId))
 
 ylimTop <- ceiling(uniqueDiseaseGenes/1000)
 postscript(paste0(imgExportDir, 'unique-genes.eps'), width=5, height=7)
