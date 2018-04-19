@@ -1,3 +1,7 @@
+# Ignores Intellij IDEA files.
+.IDEA/
+*.iml
+
 # Compiled class file
 *.class
 
