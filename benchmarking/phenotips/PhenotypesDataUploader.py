@@ -1,7 +1,7 @@
 #!/user/bin/env python3
 """
 Name: PhenotypesDataUploader.py
-Usage: PhenotypesDataUploader.py <benchmark TSV file> <HPO OBO file>
+Usage: PhenotypesDataUploader.py <username> <HPO OBO file> <benchmark TSV file>
 
 Example:
     PhenotypesDataUploader.py benchmark_data.tsv hp.obo
@@ -15,11 +15,12 @@ from sys import argv
 from requests import post
 from requests import HTTPError
 from requests.auth import HTTPBasicAuth
+from getpass import getpass
 
 
 def main():
     phenotypes = readPhenotypes(argv[2])
-    uploadPhenotypes(argv[1], phenotypes)
+    uploadPhenotypes(argv[3], phenotypes, argv[1], getpass("Phenotips password: "))
 
 
 def readPhenotypes(hpoObo):
@@ -50,7 +51,7 @@ def readPhenotypes(hpoObo):
     return phenotypes
 
 
-def uploadPhenotypes(dataToUpload, phenotypes):
+def uploadPhenotypes(dataToUpload, phenotypes, username, password):
     for i, line in enumerate(open(dataToUpload)):
         if i == 0:
             continue
@@ -68,7 +69,7 @@ def uploadPhenotypes(dataToUpload, phenotypes):
         requestString += "]}"
 
         try:
-            response = post('http://localhost:8080/rest/patients', data=requestString, auth=HTTPBasicAuth('Admin', 'admin'))
+            response = post('http://localhost:8080/rest/patients', data=requestString, auth=HTTPBasicAuth(username, password))
             response.raise_for_status()
         except HTTPError as e:
             print(e)
