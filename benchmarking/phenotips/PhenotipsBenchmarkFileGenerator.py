@@ -6,7 +6,7 @@ Example:
     PhenotipsBenchmarkFileGenerator.py http://localhost:8080/ Admin hp.obo benchmark_data.tsv out.tsv
 
 Description:
-    Uploads benchmark data to Phenotips using HPO data (as an .obo file).
+    Uploads benchmark data to Phenotips using HPO data (as an .obo file) and then downloads suggested genes.
 """
 
 from os.path import isfile
