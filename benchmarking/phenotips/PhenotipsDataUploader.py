@@ -1,6 +1,9 @@
 #!/user/bin/env python3
 """
-Name: PhenotypesDataUploader.py
+Name: PhenotipsDataUploader.py
+
+Example:
+    PhenotipsDataUploader.py http://localhost:8080/ Admin hp.obo benchmark_data.tsv
 
 Description:
     Uploads benchmark data to Phenotips using HPO data (as an .obo file).
@@ -28,7 +31,7 @@ def parseCommandLine():
 
     # Defines command line.
     parser = ArgumentParser()
-    parser.add_argument("url", help="the url to the phenotips instance to upload to")
+    parser.add_argument("url", help="the url to the phenotips instance to upload to (")
     parser.add_argument("username", help="the username for authentication to the phenotips server")
     parser.add_argument("hpo", help="he HPO .obo file containing phenotype id's/names")
     parser.add_argument("tsv", help="the benchmarking .tsv file where the first column is the sample ID and the 5th column 1 or more phenotypes (separated by a ';')")
@@ -135,7 +138,7 @@ def uploadPhenotypes(phenotipsUrl, username, password, phenotypes, dataToUpload)
         # Tries to make a request to the REST API with the JSON String. If an HTTPError is triggered, this is printed
         # and then no further benchmarking data will be uploaded.
         try:
-            response = post(phenotipsUrl, data=requestString, auth=HTTPBasicAuth(username, password))
+            response = post(phenotipsUrl.rstrip("/") + "/rest/patients", data=requestString, auth=HTTPBasicAuth(username, password))
             response.raise_for_status()
         except HTTPError as e:
             print(e)
