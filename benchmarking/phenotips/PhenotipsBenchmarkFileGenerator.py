@@ -13,6 +13,7 @@ from os.path import isfile
 from argparse import ArgumentParser
 from requests import post
 from requests import get
+from requests.exceptions import ConnectionError
 from requests import HTTPError
 from requests.auth import HTTPBasicAuth
 from getpass import getpass
@@ -94,17 +95,17 @@ def readPhenotypes(hpoObo):
             name = None
         # Sets id/name when found.
         elif line.startswith(idString):
-            hpoId = line.lstrip(idString)
+            hpoId = line.lstrip(idString).strip()
         elif line.startswith(nameString):
-            name = line.lstrip(nameString)
+            name = line.lstrip(nameString).strip()
         # Sets a synonym as alternative for name when found on a line.
         elif line.startswith(synonymString):
-            name = line.lstrip(synonymString).split('"', 1)[0]
+            name = line.lstrip(synonymString).split('"', 1)[0].strip()
 
         # If a combination of an id and a name/synonym is stored, saves it to the dictionary.
         # Afterwards, resets name to None so that it won't be triggered by every line (unless a new synonym is found).
         if hpoId is not None and name is not None:
-            phenotypes[name.strip()] = hpoId.strip()
+            phenotypes[name] = hpoId
             name = None
 
     return phenotypes
@@ -158,9 +159,8 @@ def uploadPhenotypes(phenotipsUrl, username, password, phenotypes, dataToUpload)
         try:
             response = post(phenotipsUrl + "/rest/patients", data=requestString, auth=HTTPBasicAuth(username, password))
             response.raise_for_status()
-        except HTTPError as e:
-            print(e)
-            break
+        except (ConnectionError, HTTPError) as e:
+            exit(e)
 
     return lovds
 
@@ -204,9 +204,8 @@ def downloadGenes(phenotipsUrl, username, password, out, lovds):
             # Retrieves the suggested genes for the LOVD.
             response = get(phenotipsUrl + "/rest/patients/" + phenotipsId + "/suggested-gene-panels", auth=HTTPBasicAuth(username, password))
             response.raise_for_status()
-        except HTTPError as e:
-            print(e)
-            break
+        except (ConnectionError, HTTPError) as e:
+            exit(e)
 
         # Goes through all suggested genes for a single LOVD.
         for i, gene in enumerate(response.json()['genes']):
