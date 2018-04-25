@@ -40,3 +40,25 @@ def readPhenotypes(hpoObo):
             name = None
 
     return phenotypes
+
+def retrieveLovdPhenotypes(benchmarkData):
+    # Stores all LOVDs
+    lovdPhenotypes = {}
+
+    # Goes through the benchmarking file.
+    for i, line in enumerate(open(benchmarkData)):
+        # Skips first line (header).
+        if i == 0:
+            continue
+
+        # Splits the values on their separator.
+        line = line.rstrip().split('\t')
+
+        # Checks whether this LOVD was already processed (skips if this is the case).
+        if line[0] in lovdPhenotypes.keys():
+            continue
+
+        # Adds the phenotypes with their corresponding key.
+        lovdPhenotypes[line[0]] = line[4].split(';')
+
+    return lovdPhenotypes

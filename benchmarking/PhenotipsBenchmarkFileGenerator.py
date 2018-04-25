@@ -19,14 +19,16 @@ from requests.auth import HTTPBasicAuth
 from getpass import getpass
 from re import match
 from BenchmarkGenerics import readPhenotypes
+from BenchmarkGenerics import retrieveLovdPhenotypes
 
 
 def main():
     args = parseCommandLine()
-    phenotypes = readPhenotypes(args.hpo)
+    phenotypeIdsByName = readPhenotypes(args.hpo)
+    lovdPhenotypes = retrieveLovdPhenotypes(args.tsv)
     pwd = getpass("Phenotips password for " + args.username + ":")
-    lovds = uploadPhenotypes(args.url, args.username, pwd, phenotypes, args.tsv)
-    downloadGenes(args.url, args.username, pwd, args.out, lovds)
+    uploadPhenotypes(args.url, args.username, pwd, phenotypeIdsByName, lovdPhenotypes)
+    downloadGenes(args.url, args.username, pwd, args.out, lovdPhenotypes.keys())
 
 
 def parseCommandLine():
@@ -70,47 +72,24 @@ def parseCommandLine():
     return args
 
 
-def uploadPhenotypes(phenotipsUrl, username, password, phenotypes, dataToUpload):
+def uploadPhenotypes(phenotipsUrl, username, password, phenotypeIdsByName, lovdPhenotypes):
     """
     Uploads the benchmark data to phenotips.
     :param phenotipsUrl: the url to upload the benchmark data to
     :param username: the username for authentication
     :param password: the password for authentication
-    :param phenotypes: dict with phenotype names as keys and their id as value
-    :param dataToUpload: the benchmark .tsv file
+    :param phenotypeIdsByName: dict with phenotype names as keys and their id as value
+    :param lovdPhenotypes: benchmark data with as key the LOVD and as value a list of phenotype names
     :return: list with all LOVDs that were uploaded
     """
 
-    # Stores all LOVDs
-    lovds = []
-
-    # Goes through the benchmarking file.
-    for i, line in enumerate(open(dataToUpload)):
-        # Skips first line (header).
-        if i == 0:
-            continue
-
-        # Splits the values on their separator.
-        line = line.rstrip().split('\t')
-
-        # Checks whether this is the same test individual as the previous one and skips it if this is the case.
-        # Reason: some individual are stored multiple times as they have multiple gene/OMIM matches.
-        if i > 1 and line[0] == lovds[-1]:
-            continue
-
-        # Adds the LOVD to the list with all processed LOVDs.
-        lovds.append(line[0])
-
+    for lovd in lovdPhenotypes.keys():
         # Starts generating the JSON for the request.
-        requestString = '{"solved":{"status":"unsolved"},"external_id":"' + line[0] + '","clinicalStatus":"affected","features":['
+        requestString = '{"solved":{"status":"unsolved"},"external_id":"' + lovd + '","clinicalStatus":"affected","features":['
 
-        # Goes through all phenotypes (after being split on their separator) and adds these to the JSON String.
-        for j, hpoName in enumerate(line[4].split(';')):
-            if j > 0:
-                requestString += ','
-
-            requestString += '{"id":"' + phenotypes.get(hpoName) + '","label":"' + hpoName + '","type":"phenotype","observed":"yes"}'
-
+        # Goes through all phenotypes and adds these to the JSON String.
+        for phenotypeName in lovdPhenotypes.get(lovd):
+            requestString += '{"id":"' + phenotypeIdsByName.get(phenotypeName) + '","label":"' + phenotypeName + '","type":"phenotype","observed":"yes"}'
         requestString += "]}"
 
         # Tries to make a request to the REST API with the JSON String.
@@ -120,8 +99,6 @@ def uploadPhenotypes(phenotipsUrl, username, password, phenotypes, dataToUpload)
             response.raise_for_status()
         except (ConnectionError, HTTPError) as e:
             exit(e)
-
-    return lovds
 
 
 def downloadGenes(phenotipsUrl, username, password, out, lovds):
