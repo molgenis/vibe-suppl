@@ -55,9 +55,12 @@ yAxisMax <- ceiling(max(allResults, na.rm=T)/100)*100
 
 postscript(paste0(imgExportDir, 'benchmarking_comparison.eps'), width=5, height=8)
 boxplot(allResults, xaxt='n',yaxt='n', pch="")
-abline(h=seq(0, yAxisMax, 100), col="gray92")
+abline(h=1, col="gray92")
+abline(h=seq(100, yAxisMax, 100), col="gray92")
 boxplot(allResults, las=1, pch=20, yaxt='n',
         main="position of relevant genes among different tools",
         xlab="tool", ylab="position", col="white", add=T)
-axis(2, las=1, at=seq(0, yAxisMax,200))
+axis(2, las=1, at=1)
+axis(2, las=1, at=seq(200, yAxisMax,200))
 dev.off()
+
