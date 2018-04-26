@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # Defines error echo.
 function errcho { echo -e "$@" 1>&2; }
 
