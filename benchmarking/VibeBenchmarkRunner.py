@@ -148,7 +148,7 @@ def runBenchmark(phenotypeIdsByName, lovdPhenotypes, basicJarArgs, outputDir):
 
 def prepareArguments(phenotypeIdsByName, basicJarArgs, lovd, phenotypes, outputDir):
     """
-    Prepares the subprocess arguments for all LOVDs
+    Prepares the subprocess arguments for an LOVD
     :param phenotypeIdsByName: dict with phenotype names as keys and their id as value
     :param basicJarArgs: the basic java arguments to run a jar and arguments specific for the benchmark run
     :param lovd: a single LOVD name
