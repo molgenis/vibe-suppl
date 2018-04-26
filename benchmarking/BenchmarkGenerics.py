@@ -42,6 +42,11 @@ def readPhenotypes(hpoObo):
     return phenotypes
 
 def retrieveLovdPhenotypes(benchmarkData):
+    """
+    Retrieves the LOVDs with the phenotypes belonging to each LOVD.
+    :param benchmarkData: the file from which the retrieve the LOVDs and their phenotypes
+    :return: dict with as keys the LOVDs and a list with phenotypes as value for each key
+    """
     # Stores all LOVDs
     lovdPhenotypes = {}
 
