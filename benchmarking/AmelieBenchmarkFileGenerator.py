@@ -15,6 +15,7 @@ from os.path import isdir
 from argparse import ArgumentParser
 from requests import post
 from requests.exceptions import ConnectionError
+from requests.exceptions import ReadTimeout
 from requests.packages.urllib3 import disable_warnings
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from requests import HTTPError
@@ -120,9 +121,10 @@ def retrieveAmelieResults(lovdPhenotypes, hgncs, outDir):
             # Tries to make a request to the REST API with the JSON String.
             # If an HTTPError is triggered, this is printed and then no further benchmarking data will be uploaded.
             try:
-                response = post("https://amelie.stanford.edu/api/", verify=False, data={"genes":",".join(hgncsChunk), "phenotypes":",".join(lovdPhenotypes.get(lovd))})
+                response = post("https://amelie.stanford.edu/api/", verify=False, timeout=(6,300),
+                                data={"genes":",".join(hgncsChunk), "phenotypes":",".join(lovdPhenotypes.get(lovd))})
                 response.raise_for_status()
-            except (ConnectionError, HTTPError) as e:
+            except (ConnectionError, HTTPError, ReadTimeout) as e:
                 exit(e)
 
             # Stores the current time for managing time between requests.
