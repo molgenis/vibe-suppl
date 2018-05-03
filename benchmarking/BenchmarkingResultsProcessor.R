@@ -38,17 +38,25 @@ benchmarkData <- read.table(paste0(baseDir,"benchmark_data.tsv"), header=T,
                                                   "factor", "character"))
 phenotips <- read.table(paste0(baseDir,"results/phenotips.tsv"), header=T,
                         sep="\t", colClasses=c("character"), row.names=1)
+vibe.20180503 <- read.table(paste0(baseDir,"results/vibe_2018-05-02.tsv"),
+                            header=T, sep="\t", colClasses=c("character"),
+                            row.names=1)
 
 # Process data
 phenotips.results <-apply(benchmarkData, 1, singleBenchmarkResultProcessor,
                           resultData=phenotips)
 
+vibe.20180503.results <-apply(benchmarkData, 1, singleBenchmarkResultProcessor,
+                          resultData=vibe.20180503)
 
-allResults <- data.frame(phenotips.results, rep(NA, 308))
-colnames(allResults) <- c("phenotips", "placeholder")
+
+allResults <- data.frame(phenotips.results, vibe.20180503.results)
+colnames(allResults) <- c("phenotips", "vibe")
 
 # Count missing values.
-naCounts <- apply(apply(allResults, c(1,2), is.na), 2, sum)
+resultsWithAnNa <- allResults[apply(apply(allResults, c(1,2), is.na), 1, any),]
+sum(apply(apply(resultsWithAnNa, c(1,2), is.na), 1, all))
+naCounts <- apply(apply(resultsWithAnNa, c(1,2), is.na), 2, sum)
 
 # Create plot
 yAxisMax <- ceiling(max(allResults, na.rm=T)/100)*100
@@ -61,6 +69,6 @@ boxplot(allResults, las=1, pch=20, yaxt='n',
         main="position of relevant genes among different tools",
         xlab="tool", ylab="position", col="white", add=T)
 axis(2, las=1, at=1)
-axis(2, las=1, at=seq(200, yAxisMax,200))
+axis(2, las=1, at=seq(500, yAxisMax,500))
 dev.off()
 
