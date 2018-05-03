@@ -28,7 +28,6 @@ from BenchmarkGenerics import retrieveAllGenes
 from BenchmarkGenerics import chunkList
 
 
-
 def main():
     # Disables InsecureRequestWarning. See also: https://urllib3.readthedocs.org/en/latest/security.html
     disable_warnings(InsecureRequestWarning)
