@@ -20,14 +20,16 @@ from getpass import getpass
 from re import match
 from BenchmarkGenerics import readPhenotypes
 from BenchmarkGenerics import retrieveLovdPhenotypes
+from BenchmarkGenerics import convertPhenotypeNamesToIds
 
 
 def main():
     args = parseCommandLine()
     phenotypeIdsByName = readPhenotypes(args.hpo)
     lovdPhenotypes = retrieveLovdPhenotypes(args.tsv)
+    lovdPhenotypes = convertPhenotypeNamesToIds(lovdPhenotypes, phenotypeIdsByName)
     pwd = getpass("Phenotips password for " + args.username + ":")
-    uploadPhenotypes(args.url, args.username, pwd, phenotypeIdsByName, lovdPhenotypes)
+    uploadPhenotypes(args.url, args.username, pwd, lovdPhenotypes)
     downloadGenes(args.url, args.username, pwd, args.out, lovdPhenotypes.keys())
 
 
@@ -72,14 +74,13 @@ def parseCommandLine():
     return args
 
 
-def uploadPhenotypes(phenotipsUrl, username, password, phenotypeIdsByName, lovdPhenotypes):
+def uploadPhenotypes(phenotipsUrl, username, password, lovdPhenotypes):
     """
     Uploads the benchmark data to phenotips.
     :param phenotipsUrl: the url to upload the benchmark data to
     :param username: the username for authentication
     :param password: the password for authentication
-    :param phenotypeIdsByName: dict with phenotype names as keys and their id as value
-    :param lovdPhenotypes: benchmark data with as key the LOVD and as value a list of phenotype names
+    :param lovdPhenotypes: benchmark data with as key the LOVD and as value a list of HPO IDs
     :return: list with all LOVDs that were uploaded
     """
 
@@ -88,8 +89,8 @@ def uploadPhenotypes(phenotipsUrl, username, password, phenotypeIdsByName, lovdP
         requestString = '{"solved":{"status":"unsolved"},"external_id":"' + lovd + '","clinicalStatus":"affected","features":['
 
         # Goes through all phenotypes and adds these to the JSON String.
-        for phenotypeName in lovdPhenotypes.get(lovd):
-            requestString += '{"id":"' + phenotypeIdsByName.get(phenotypeName) + '","label":"' + phenotypeName + '","type":"phenotype","observed":"yes"}'
+        for phenotypeId in lovdPhenotypes.get(lovd):
+            requestString += '{"id":"' + phenotypeId + '","label":"' + phenotypeId + '","type":"phenotype","observed":"yes"}'
         requestString += "]}"
 
         # Tries to make a request to the REST API with the JSON String.

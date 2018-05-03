@@ -67,3 +67,20 @@ def retrieveLovdPhenotypes(benchmarkData):
         lovdPhenotypes[line[0]] = line[4].split(';')
 
     return lovdPhenotypes
+
+
+def convertPhenotypeNamesToIds(lovdPhenotypes, phenotypeIdsByName):
+    """
+    Converts phenotype names into phenotype IDs for a dict containing as values a list of phenotype names.
+    :param lovdPhenotypes: the dict for which the names should be replaced with HPO IDs (in the value lists)
+    :param phenotypeIdsByName: dict with phenotype names as keys and their id as value
+    :return: dict with as keys the LOVDs and a list with HPO IDs as value for each key
+    """
+    for lovd in lovdPhenotypes.keys():
+        phenotypeNames = lovdPhenotypes.get(lovd)
+        phenotypeIds = []
+        for name in phenotypeNames:
+            phenotypeIds.append(phenotypeIdsByName.get(name))
+        lovdPhenotypes[lovd] = phenotypeIds
+
+    return lovdPhenotypes
