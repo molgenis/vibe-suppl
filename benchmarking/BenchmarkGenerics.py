@@ -84,3 +84,30 @@ def convertPhenotypeNamesToIds(lovdPhenotypes, phenotypeIdsByName):
         lovdPhenotypes[lovd] = phenotypeIds
 
     return lovdPhenotypes
+
+
+def retrieveAllGenes(hgncFile):
+    """
+    Retrieves all HGNC gene symbols from the complete HGNC dataset as downloadable from https://www.genenames.org/cgi-bin/statistics
+    :param hgncFile: path to HGNC file
+    :return: a set with all unique HGNC symbols
+    """
+    hgncs = set()
+
+    for i, line in enumerate(open(hgncFile)):
+        if i > 0:
+            hgnc = line.split("\t")[1]
+            hgncs.add(hgnc)
+
+    return hgncs
+
+
+def chunkList(list, chunkSize):
+    """
+    Cuts a list into chunks and returns these chunks within a list.
+    :param list: the list to be chunked
+    :param chunkSize: the size of each chunk.
+    :return: a list with lists of the defined chunkSize
+    see also: https://stackoverflow.com/a/312464
+    """
+    return [list[i:i + chunkSize] for i in range(0, len(list), chunkSize)]
