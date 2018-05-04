@@ -132,37 +132,52 @@ def retrieveAmelieResults(lovdPhenotypes, hgncs, outDir):
             # Digests the results for the genes from a single chunk.
             for gene in response.json():
                 geneSymbol = gene[0]
-                geneScores = []
-                for scores in gene[1]:
-                    geneScores.append(scores[0])
+                scores = []
+                pubmedIds = []
 
-                # If there were any results for the gene, adds these to the LOVD results (with its scores from highest to lowest).
-                if len(geneScores) > 0:
-                    lovdAmelieOutput[geneSymbol] = sorted(geneScores, reverse=True)
+                # Goes through all score/pubmed ID sets.
+                for pubmedScores in gene[1]:
+                    scores.append(float(pubmedScores[0]))  # Expects float so enforces this.
+                    pubmedIds.append(pubmedScores[1])
+
+                # If there were any results for the gene, adds these to the LOVD results.
+                if len(scores) > 0:
+                    lovdAmelieOutput[geneSymbol] = (scores, pubmedIds)
 
         # Writes the LOVD output to a file.
-        writeLovdResultsToFile(lovd, sortAmelieOutput(lovdAmelieOutput), outFile)
+        writeLovdResultsToFile(lovdAmelieOutput, outFile)
+        exit(0)
 
 
-def sortAmelieOutput(lovdAmelieOutput):
+def retrieveSortedAmelieList(lovdAmelieOutput):
     """
-    Sorts the genes based on their first stored score and returns this as a list.
-    :param lovdAmelieOutput: a dict with as keys a gene symbol and as values a list with scores
+    Sorts the genes based on their first stored score and returns this as a list. Assumes that the first score is the highest.
+    :param lovdAmelieOutput: a dict with as keys a gene symbol and as values a tuple with lists
+            (first list contains all scores from highest to lowest, second list contains all pubmed IDs).
     :return: a list with gene symbols sorted based on the first item of the value lists
     """
-    return sorted(lovdAmelieOutput, key=lambda k: lovdAmelieOutput[k][0], reverse=True)
+    return sorted(lovdAmelieOutput, key=lambda k: lovdAmelieOutput[k][0][0], reverse=True)
 
 
-def writeLovdResultsToFile(lovd, genes, outFile):
+def writeLovdResultsToFile(lovdAmelieOutput, outFile):
     """
     Writes results for a single LOVD to a file.
-    :param lovd: the lovd code
-    :param genes: a list with gene symbols
+    :param lovdAmelieOutput: a dict with as keys a gene symbol and as values a tuple with lists
+            (first list contains all scores from highest to lowest, second list contains all pubmed IDs).
     :param outFile: the file to write the output to
     :return:
     """
+    # File to write output to.
     fileWriter = open(outFile, 'w')
-    fileWriter.write(lovd + "\t" + ",".join(genes) + "\n")
+
+    # Writes the header to the file.
+    fileWriter.write("gene\tscores\tpubmed IDs\n")
+
+    # Goes through all genes and writes these to the file (1 line per gene).
+    for gene in retrieveSortedAmelieList(lovdAmelieOutput):
+        fileWriter.write(gene + "\t" + ";".join(map(str,lovdAmelieOutput.get(gene)[0])) + "\t" + ";".join(lovdAmelieOutput.get(gene)[1]) + "\n")
+
+    # Flushes and closes writer.
     fileWriter.flush()
     fileWriter.close()
 
