@@ -6,7 +6,7 @@ Example:
     AmelieBenchmarkFileGenerator.py input/ output.tsv
 
 Description:
-
+    Processes the output from AmelieApiOutputGenerator.py for usage in R plots.
 """
 
 from os.path import isfile
@@ -23,7 +23,7 @@ def main():
 
 def parseCommandLine():
     """
-    Processes the command line arguments
+    Processes the command line arguments.
     :return: args
     """
 
@@ -49,7 +49,14 @@ def parseCommandLine():
 
     return args
 
+
 def mergeFiles(inDir, outFile):
+    """
+    Actual processing of the AmelieApiOutputGenerator.py output to a single file with only LOVDs with the ordered genes.
+    :param inDir: the directory containing all input files
+    :param outFile: the file to write output to
+    :return:
+    """
     # File to write output to.
     fileWriter = open(outFile, 'w')
 
