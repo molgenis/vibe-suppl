@@ -177,7 +177,7 @@ def writeLovdResultsToFile(lovdAmelieOutput, outFile):
         fileWriter.write(gene + "\t")
         for i,pubmedScore in enumerate(lovdAmelieOutput.get(gene)):
             if i > 0:
-                fileWriter.write(";")
+                fileWriter.write(",")
             fileWriter.write(pubmedScore[0] + ":" + str(pubmedScore[1]))
         fileWriter.write("\n")
 
