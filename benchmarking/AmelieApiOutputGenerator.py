@@ -146,7 +146,6 @@ def retrieveAmelieResults(lovdPhenotypes, hgncs, outDir):
 
         # Writes the LOVD output to a file.
         writeLovdResultsToFile(lovdAmelieOutput, outFile)
-        exit(0)
 
 
 def retrieveSortedAmelieList(lovdAmelieOutput):
