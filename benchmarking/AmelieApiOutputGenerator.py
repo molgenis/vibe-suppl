@@ -120,7 +120,7 @@ def retrieveAmelieResults(lovdPhenotypes, hgncs, outDir):
             # Tries to make a request to the REST API with the JSON String.
             # If an HTTPError is triggered, this is printed and then no further benchmarking data will be uploaded.
             try:
-                response = post("https://amelie.stanford.edu/api/", verify=False, timeout=(6,180),
+                response = post("https://amelie.stanford.edu/api/", verify=False, timeout=(6,600),
                                 data={"genes":",".join(hgncsChunk), "phenotypes":",".join(lovdPhenotypes.get(lovd))})
                 response.raise_for_status()
             except (ConnectionError, HTTPError, ReadTimeout) as e:
