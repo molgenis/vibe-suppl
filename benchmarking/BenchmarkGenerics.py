@@ -1,5 +1,7 @@
 #!/user/bin/env python3
 
+from shutil import which
+
 def readPhenotypes(hpoObo):
     """
     Reads the phenotypes from an .obo file.
@@ -111,3 +113,14 @@ def chunkList(list, chunkSize):
     see also: https://stackoverflow.com/a/312464
     """
     return [list[i:i + chunkSize] for i in range(0, len(list), chunkSize)]
+
+def validateProgram(commandLine):
+    """
+    Checks whether the command line (which should contain an application name) refers to a valid path. If it is an
+    existing application, does nothing. If the path is not valid, exits with an OSError indicating there is a missing
+    application.
+    :param commandLine: the name of the application as how it would be called using the command line
+    :return:
+    """
+    if not which(commandLine):
+        exit(OSError("Error: " + commandLine + " is not available on this system."))
