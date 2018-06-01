@@ -3,7 +3,7 @@
 Name: PhenomizerBenchmarkRunner.py
 
 Example:
-    PhenomizerBenchmarkRunner.py username hp.obo benchmark_data.tsv output/
+    PhenomizerBenchmarkRunner.py username hp.obo benchmark_data.tsv api_output/
 
 Description:
     Runs the benchmark data through Phenomizer and writes the results to files in the defined output directory.
