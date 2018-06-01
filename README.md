@@ -24,7 +24,8 @@ An explanation on how to run the can be found below.
     * __Info:__ Creates plots from the benchmark data.
 * __`PhenomizerBenchmarkRunner.py`__
     * __Info:__ Uses the [query_phenomizer][query_phenomizer] python tool to process all benchmark data.
-    * __Important:__ [query_phenomizer][query_phenomizer] needs to be installed on the system.
+    * __Important:__ [query_phenomizer][query_phenomizer] needs to be installed on the system. Additionally, an account
+    is needed for running [query_phenomizer][query_phenomizer].
 * __`PhenotipsBenchmarkFileGenerator.py`__
     * __Info:__ Uses the API of Phenotips to upload the benchmark dataset and then download the results.
     * __Important:__ A phenotips instince to which can be connected is required. Please refer to the
