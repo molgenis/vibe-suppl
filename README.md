@@ -119,7 +119,7 @@ There are several files used among these scripts. These include:
 
 [vibe]:https://github.com/molgenis/vibe
 [vibe_preperations]:https://github.com/molgenis/vibe/#preparations
-[hgnc_complete]:ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/tsv/hgnc_complete_set.txt
+[hgnc_complete]:http://ftp.ebi.ac.uk/pub/databases/genenames/new/tsv/hgnc_complete_set.txt
 [query_phenomizer]:https://github.com/svandenhoek/query_phenomizer
 [phenotips_download]:https://phenotips.org/Download
 [hpo_obo]:http://purl.obolibrary.org/obo/hp.obo
