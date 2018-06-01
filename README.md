@@ -57,6 +57,10 @@ There are several files used among these scripts. These include:
 1. Run benchmark:
     ```
     AmelieApiOutputGenerator.py hp.obo hgnc_complete_set.txt benchmark_data.tsv api_output/
+    ```
+
+2. Process benchmark output:
+    ```
     AmelieBenchmarkFileGenerator.py api_output/ amelie_results.tsv
     ```
 
@@ -72,6 +76,11 @@ There are several files used among these scripts. These include:
 2. Run benchmark:
     ```
     PhenomizerBenchmarkRunner.py username hp.obo benchmark_data.tsv ~/Desktop/phenomizer_output/
+    ```
+
+3. Process benchmark output:
+    ```
+    # Needs to be implemented.
     ```
 
 #### Phenotips
@@ -110,7 +119,7 @@ There are several files used among these scripts. These include:
     sh vibe_benchmark_2.sh
     ```
 
-4. Merge output after benchmarking is finished:
+4. Process benchmark output:
     ```
     sh VibeSimpleOutputFilesMerger.sh results/
     ```
