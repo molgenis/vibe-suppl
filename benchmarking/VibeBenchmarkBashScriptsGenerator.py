@@ -26,6 +26,9 @@ Description:
     |- err/
 
     Where "..." indicates more files like the one from the line above.
+
+    The number given to the application indicates the maximum number of runs done by a single bash script
+     (50 in the example).
 """
 
 from argparse import ArgumentParser

@@ -3,7 +3,7 @@
 Name:
     AmelieBenchmarkFileGenerator.py
 Example:
-    AmelieBenchmarkFileGenerator.py input/ output.tsv
+    AmelieBenchmarkFileGenerator.py api_output/ output.tsv
 
 Description:
     Processes the output from AmelieApiOutputGenerator.py for usage in R plots.

@@ -3,7 +3,7 @@
 Name:
     AmelieApiOutputGenerator.py
 Example:
-    AmelieApiOutputGenerator.py hp.obo hgnc_complete_set.txt benchmark_data.tsv output/
+    AmelieApiOutputGenerator.py hp.obo hgnc_complete_set.txt benchmark_data.tsv api_output/
 
 Description:
     Retrieves data from https://amelie.stanford.edu/ using the API, processes this and writes the output to multiple
