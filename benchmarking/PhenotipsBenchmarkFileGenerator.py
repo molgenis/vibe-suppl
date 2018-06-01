@@ -3,7 +3,7 @@
 Name: PhenotipsBenchmarkFileGenerator.py
 
 Example:
-    PhenotipsBenchmarkFileGenerator.py http://localhost:8080/ Admin hp.obo benchmark_data.tsv out.tsv
+    PhenotipsBenchmarkFileGenerator.py http://localhost:8080/ username hp.obo benchmark_data.tsv out.tsv
 
 Description:
     Uploads benchmark data to Phenotips using HPO data (as an .obo file) and then downloads suggested genes.
