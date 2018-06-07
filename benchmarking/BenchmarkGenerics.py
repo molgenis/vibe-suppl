@@ -5,6 +5,7 @@ from argparse import ArgumentParser
 from os.path import isfile
 from os.path import isdir
 from os import listdir
+from collections import OrderedDict
 
 
 def readPhenotypes(hpoObo):
@@ -193,3 +194,13 @@ def mergeFiles(fileProcessor, inDir, outFile):
     # Flushes and closes writer.
     fileWriter.flush()
     fileWriter.close()
+
+
+def removeDuplicates(orderedList):
+    """
+    Removes the duplicates from a list while maintaining the order.
+    :param orderedList: the list from which duplicates should be removed.
+    :return: the list without duplicates (order maintained by keeping the first occurence
+    of values that occur multiple times).
+    """
+    return list(OrderedDict.fromkeys(orderedList))

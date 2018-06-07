@@ -11,7 +11,7 @@ Description:
 
 from BenchmarkGenerics import fileMergerParser
 from BenchmarkGenerics import mergeFiles
-from collections import OrderedDict
+from BenchmarkGenerics import removeDuplicates
 
 
 def main():
@@ -41,7 +41,7 @@ def processPhenomizerFile(fileWriter, filePath):
                 allGenes.append(gene.split("(")[0].strip())
 
     # Writes the genes to the file while removing duplicates (first mention is kept).
-    fileWriter.write(",".join(list(OrderedDict.fromkeys(allGenes))))
+    fileWriter.write(",".join(removeDuplicates(allGenes)))
 
     # Writes a newline to indicate the last gene from this file has been processed.
     fileWriter.write("\n")
