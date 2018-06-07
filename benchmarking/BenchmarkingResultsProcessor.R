@@ -36,8 +36,15 @@ imgExportDir <- '~/Documents/afstuderen/verslag/img/'
 benchmarkData <- read.table(paste0(baseDir,"benchmark_data.tsv"), header=T,
                             sep="\t",colClasses=c(rep("character", 3),
                                                   "factor", "character"))
+
 phenotips <- read.table(paste0(baseDir,"results/phenotips.tsv"), header=T,
                         sep="\t", colClasses=c("character"), row.names=1)
+phenomizer <- read.table(paste0(baseDir,"results/phenomizer.tsv"),
+                         header=T, sep="\t", colClasses=c("character"),
+                         row.names=1)
+amelie <- read.table(paste0(baseDir,"results/amelie.tsv"),
+                     header=T, sep="\t", colClasses=c("character"),
+                     row.names=1)
 vibe.20180503 <- read.table(paste0(baseDir,"results/vibe_2018-05-02.tsv"),
                             header=T, sep="\t", colClasses=c("character"),
                             row.names=1)
@@ -46,12 +53,19 @@ vibe.20180503 <- read.table(paste0(baseDir,"results/vibe_2018-05-02.tsv"),
 phenotips.results <-apply(benchmarkData, 1, singleBenchmarkResultProcessor,
                           resultData=phenotips)
 
+phenomizer.results <-apply(benchmarkData, 1, singleBenchmarkResultProcessor,
+                              resultData=phenomizer)
+
+amelie.results <-apply(benchmarkData, 1, singleBenchmarkResultProcessor,
+                           resultData=amelie)
+
 vibe.20180503.results <-apply(benchmarkData, 1, singleBenchmarkResultProcessor,
-                          resultData=vibe.20180503)
+                              resultData=vibe.20180503)
 
 
-allResults <- data.frame(phenotips.results, vibe.20180503.results)
-colnames(allResults) <- c("phenotips", "vibe")
+allResults <- data.frame(amelie.results, phenomizer.results, phenotips.results,
+                         vibe.20180503.results)
+colnames(allResults) <- c("amelie", "phenomizer", "phenotips", "vibe")
 
 # Count missing values.
 resultsWithAnNa <- allResults[apply(apply(allResults, c(1,2), is.na), 1, any),]
@@ -61,7 +75,7 @@ naCounts <- apply(apply(resultsWithAnNa, c(1,2), is.na), 2, sum)
 # Create plot
 yAxisMax <- ceiling(max(allResults, na.rm=T)/100)*100
 
-postscript(paste0(imgExportDir, 'benchmarking_comparison.eps'), width=5, height=8)
+postscript(paste0(imgExportDir, 'benchmarking_comparison.eps'), width=6, height=8)
 boxplot(allResults, xaxt='n',yaxt='n', pch="")
 abline(h=1, col="gray92")
 abline(h=seq(100, yAxisMax, 100), col="gray92")
