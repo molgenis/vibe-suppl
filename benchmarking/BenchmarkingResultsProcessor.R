@@ -12,6 +12,7 @@
 
 #install.packages("VennDiagram")
 library(VennDiagram)
+library(RColorBrewer)
 
 
 
@@ -118,7 +119,16 @@ positionResults <- data.frame(amelie=resultsPositionCalculator(benchmarkData, am
 resultsWithNa <- positionResults[apply(apply(positionResults, c(1,2), is.na), 1, any),]
 naCounts <- apply(apply(resultsWithNa, c(1,2), is.na), 2, sum)
 
-# Create plot using absolute positions
+### Relative position calculations.
+positionOrderedToolNames <- sapply(apply(positionResults, 1, sort, na.last=NA), names)
+relativePositionResults <- sapply(1:4, function(x) { table(sapply(positionOrderedToolNames, '[', x)) })
+colnames(relativePositionResults) <- 1:4
+relativePositionResults <- cbind(relativePositionResults, naCounts)
+apply(relativePositionResults, 1, sum)
+
+###
+### Boxplot comparing absolute positions of genes.
+###
 yAxisMax <- ceiling(max(positionResults, na.rm=T)/100)*100
 
 postscript(paste0(imgExportDir, 'benchmarking_gene_position_boxplots.eps'), width=6, height=8)
@@ -132,3 +142,38 @@ axis(2, las=1, at=1)
 axis(2, las=1, at=seq(500, yAxisMax,500))
 dev.off()
 
+###
+### Barplot for relative positions.
+###
+
+barplot(t(relativePositionResults), col=rev(brewer.pal(5, 'RdYlGn')))
+
+###
+### Venn diagrams showing differences between tools.
+###
+colors <- brewer.pal(ncol(positionResults), 'Set3')
+#grid.newpage()
+
+# Plot differences in whether the gene was found.
+cairo_ps(paste0(imgExportDir, 'benchmarking_genes_found.eps'), width=8, height=8)
+grid.draw(venn.diagram(apply(!is.na(positionResults), 2, which), NULL,
+                       main.fontfamily="Helvetica", sub.fontfamily="Helvetica",
+                       fontfamily="Helvetica", cat.fontfamily="Helvetica",
+                       fill=colors))
+dev.off()
+
+# Plot differences in whether the gene was found within the first 100 positions.
+cairo_ps(paste0(imgExportDir, 'benchmarking_genes_max_100.eps'), width=8, height=8)
+grid.draw(venn.diagram(apply(positionResults <=100, 2, which), NULL,
+                       main.fontfamily="Helvetica", sub.fontfamily="Helvetica",
+                       fontfamily="Helvetica", cat.fontfamily="Helvetica",
+                       fill=colors))
+dev.off()
+
+# Plot differences in whether the gene was found within the first 20 positions.
+cairo_ps(paste0(imgExportDir, 'benchmarking_genes_max_020.eps'), width=8, height=8)
+grid.draw(venn.diagram(apply(positionResults <=20, 2, which), NULL,
+                       main.fontfamily="Helvetica", sub.fontfamily="Helvetica",
+                       fontfamily="Helvetica", cat.fontfamily="Helvetica",
+                       fill=colors))
+dev.off()
