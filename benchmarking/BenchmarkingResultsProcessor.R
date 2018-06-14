@@ -146,7 +146,14 @@ dev.off()
 ### Barplot for relative positions.
 ###
 
-barplot(t(relativePositionResults), col=rev(brewer.pal(5, 'RdYlGn')))
+postscript(paste0(imgExportDir, 'benchmarking_gene_position_ranked.eps'), width=6, height=4)
+colors <- rev(brewer.pal(5, 'RdYlGn'))
+barplot(t(relativePositionResults), col=colors, las=1,
+        main="gene position ranked among the tools")
+par(xpd=TRUE) # no clipping for drawing outside plot
+legend(-0.2,-80, c("first","second", "third", "fourth", "no hit"),
+       fill=colors, ncol=5)
+dev.off()
 
 ###
 ### Venn diagrams showing differences between tools.
@@ -160,6 +167,7 @@ grid.draw(venn.diagram(apply(!is.na(positionResults), 2, which), NULL,
                        main.fontfamily="Helvetica", sub.fontfamily="Helvetica",
                        fontfamily="Helvetica", cat.fontfamily="Helvetica",
                        fill=colors))
+grid.text(sum(apply(is.na(positionResults), 1, all)),0.5,0.82)
 dev.off()
 
 # Plot differences in whether the gene was found within the first 100 positions.
@@ -168,6 +176,7 @@ grid.draw(venn.diagram(apply(positionResults <=100, 2, which), NULL,
                        main.fontfamily="Helvetica", sub.fontfamily="Helvetica",
                        fontfamily="Helvetica", cat.fontfamily="Helvetica",
                        fill=colors))
+grid.text(sum(apply(positionResults > 100, 1, all, na.rm=T)),0.5,0.82)
 dev.off()
 
 # Plot differences in whether the gene was found within the first 20 positions.
@@ -176,4 +185,6 @@ grid.draw(venn.diagram(apply(positionResults <=20, 2, which), NULL,
                        main.fontfamily="Helvetica", sub.fontfamily="Helvetica",
                        fontfamily="Helvetica", cat.fontfamily="Helvetica",
                        fill=colors))
+grid.text(sum(apply(positionResults > 20, 1, all, na.rm=T)),0.5,0.82)
 dev.off()
+
