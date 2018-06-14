@@ -27,3 +27,7 @@ hs_err_pid*
 
 # Mac custom folder attributes
 .DS_Store
+
+# Python
+*.pyc
+__pychache__/
