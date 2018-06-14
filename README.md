@@ -22,7 +22,7 @@ An explanation on how to run the can be found below.
     to run the benchmarks there), be sure to include this file within the same directory.
 * __`BenchmarkResultsProcessor.R`__
     * __Info:__ Creates plots from the benchmark data.
-* __`PhenomizerBenchmarkFileGenerator.py`
+* __`PhenomizerBenchmarkFileGenerator.py`__
     * __Info:__ Converts the output from `PhenomizerBenchmarkRunner.py` for usage in `BenchmarkResultsProcessor.R`.
 * __`PhenomizerBenchmarkRunner.py`__
     * __Info:__ Uses the [query_phenomizer][query_phenomizer] python tool to process all benchmark data.
