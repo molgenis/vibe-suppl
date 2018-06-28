@@ -6,6 +6,7 @@ from os.path import isfile
 from os.path import isdir
 from os import listdir
 from collections import OrderedDict
+from time import sleep
 
 
 def readPhenotypes(hpoObo):
@@ -204,3 +205,16 @@ def removeDuplicates(orderedList):
     of values that occur multiple times).
     """
     return list(OrderedDict.fromkeys(orderedList))
+
+
+def waitTillElapsed(waitTime, elapsed=0, sleepTime=1):
+    """
+    Makes sure a specific amount of time has elapsed.
+    :param waitTime: the time that should be elapsed
+    :param elapsed: the currently elapsed time (default: 0)
+    :param sleepTime: the time between checks whether elapsed has passed waitTime (default: 1)
+    :return:
+    """
+    while elapsed < waitTime:
+        sleep(sleepTime)
+        elapsed += sleepTime
