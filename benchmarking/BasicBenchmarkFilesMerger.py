@@ -1,12 +1,13 @@
 #!/user/bin/env python3
 """
 Name:
-    AmelieBenchmarkFileGenerator.py
+    BasicBenchmarkFilesMerger.py
 Example:
-    AmelieBenchmarkFileGenerator.py api_output/ output.tsv
+    BasicBenchmarkFilesMerger.py api_output/ output.tsv
 
 Description:
-    Processes the output from AmelieApiOutputGenerator.py for usage in R plots.
+    Processes the output from benchmark scripts which generate output .tsv files containing 1 gene per line with the
+    gene being the first column (with optionally containing other columns with additional information).
 """
 
 from BenchmarkGenerics import fileMergerParser
