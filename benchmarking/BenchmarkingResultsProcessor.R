@@ -95,6 +95,35 @@ sortRows <- function(benchmarkResults) {
   benchmarkResults[order(as.numeric(rownames(benchmarkResults))), , drop=FALSE]
 }
 
+########
+# Name:
+# drawBenchmarkQuintupleVenn
+#
+# Description:
+# Draws a venn diagram using data as input and writes text outside of it indicating the number from outside to show
+# how many were not included by any of the items from the venn diagram.
+#
+# Input:
+# data - A list of vectors (e.g., integers, chars), with each component corresponding to a separate circle in the Venn
+#        diagram (direct citation from venn.diagram() from the library VennDiagram).
+# outside - a number indicating how many hits were outside the venn diagram.
+#
+# Output:
+#
+########
+drawBenchmarkQuintupleVenn <- function(data, outside) {
+  grid.draw(venn.diagram(data, NULL,
+                         fontfamily="Helvetica", main.fontfamily="Helvetica",
+                         sub.fontfamily="Helvetica", cat.fontfamily="Helvetica",
+                         fill=colors, cat.just=list(c(0.5,1),
+                                                    c(-0.5,-6),
+                                                    c(0,0),
+                                                    c(1,1),
+                                                    c(1.5,-6))
+                         ))
+  grid.text(paste("none\n", outside), 0.1, 0.2)
+}
+
 
 
 
@@ -121,12 +150,14 @@ benchmarkData <- read.table(paste0(baseDir,"benchmark_data.tsv"), header=T,
                                                   "factor", "character"))
 
 amelie <- readResultFile("results/amelie.tsv")
+geneNetwork <- readResultFile("results/gene_network.tsv")
 phenomizer <- readResultFile("results/phenomizer.tsv")
 phenotips <- readResultFile("results/phenotips.tsv")
 vibe.20180503 <- readResultFile("results/vibe_2018-05-02.tsv")
 
 # Sorts benchmark results so that row order is identical.
 amelie <- sortRows(amelie)
+geneNetwork <- sortRows(geneNetwork)
 phenomizer <- sortRows(phenomizer)
 phenotips <- sortRows(phenotips)
 vibe.20180503 <- sortRows(vibe.20180503)
@@ -140,12 +171,14 @@ vibe.20180503 <- sortRows(vibe.20180503)
 # Calculate absolute positions. This is done by processing benchmarkData row-by-row
 # and therefore the LOVD row order of positionResults is equal to that of benchmarkData.
 positionResults <- data.frame(amelie=resultsPositionCalculator(benchmarkData, amelie),
+                              geneNetwork=resultsPositionCalculator(benchmarkData, geneNetwork),
                               phenomizer=resultsPositionCalculator(benchmarkData, phenomizer),
                               phenotips=resultsPositionCalculator(benchmarkData, phenotips),
                               vibe.20180503=resultsPositionCalculator(benchmarkData, vibe.20180503))
 
 # Calculate total number of genes.
 totalResults <- data.frame(amelie=calculateTotalGenesFound(amelie),
+                           geneNetwork=calculateTotalGenesFound(geneNetwork),
                            phenomizer=calculateTotalGenesFound(phenomizer),
                            phenotips=calculateTotalGenesFound(phenotips),
                            vibe.20180503=calculateTotalGenesFound(vibe.20180503),
@@ -162,9 +195,12 @@ naCounts <- apply(apply(resultsWithNa, c(1,2), is.na), 2, sum)
 
 ### Calculate absolute tool rankings.
 toolRankingResults <- sapply(apply(positionResults, 1, sort, na.last=NA), names)
-toolRankingResults <- sapply(1:4, function(x) { sapply(toolRankingResults, '[', x) })
-colnames(toolRankingResults) <- c("first", "second", "third", "fourth")
-toolRankingResultCounts <- apply(toolRankingResults, 2, table)
+toolRankingResults <- sapply(1:5, function(x) { sapply(toolRankingResults, '[', x) })
+colnames(toolRankingResults) <- c("first", "second", "third", "fourth", "fifth")
+
+toolRankingResultCounts <- apply(toolRankingResults, 2, function(x) {
+  table(factor(x, levels=colnames(positionResults)))
+  })
 toolRankingResultCounts <- cbind(toolRankingResultCounts, "no hit"=naCounts)
 
 # Retrieves all used input phenotypes.
@@ -174,6 +210,7 @@ allPhenotypeNames <- sort(unique(unlist(sapply(benchmarkData[,5], strsplit, ";")
 # This specific dataframe is focused on counting the phenotypes for when a tool
 # ranked first among all tools.
 phenotypeCountsWhenToolRankedFirst <- data.frame(amelie=rep(0,length(allPhenotypeNames)),
+                                                 geneNetwork=rep(0,length(allPhenotypeNames)),
                                                  phenomizer=rep(0,length(allPhenotypeNames)),
                                                  phenotips=rep(0,length(allPhenotypeNames)),
                                                  vibe.20180503=rep(0,length(allPhenotypeNames)),
@@ -202,7 +239,8 @@ rm(foundCounts)
 ###
 
 # Check whether the rows of all benchmarks are identically ordered.
-rownames(phenotips) == rownames(phenomizer) &&
+rownames(amelie) == rownames(geneNetwork) &&
+  rownames(geneNetwork) == rownames(phenomizer) &&
   rownames(phenomizer) == rownames(phenotips) &&
   rownames(phenotips) == rownames(vibe.20180503)
 
@@ -219,7 +257,7 @@ apply(toolRankingResultCounts, 1, sum)
 ###
 
 # Boxplot comparing absolute positions of genes.
-postscript(paste0(imgExportDir, 'benchmarking_gene_position_absolute.eps'), width=6, height=8)
+postscript(paste0(imgExportDir, 'benchmarking_gene_position_absolute.eps'), width=7, height=8)
 yAxisMax <- ceiling(max(positionResults, na.rm=T)/100)*100
 boxplot(positionResults, xaxt='n',yaxt='n', pch="")
 abline(h=1, col="gray92")
@@ -232,7 +270,7 @@ axis(2, las=1, at=seq(500, yAxisMax,500))
 dev.off()
 
 # Boxplot comparing number of suggested genes found.
-postscript(paste0(imgExportDir, 'benchmarking_gene_position_total_hits.eps'), width=6, height=8)
+postscript(paste0(imgExportDir, 'benchmarking_gene_position_total_hits.eps'), width=7, height=8)
 yAxisMax <- ceiling(max(totalResults, na.rm=T)/500)*500
 boxplot(totalResults, xaxt='n',yaxt='n', pch="")
 abline(h=1, col="gray92")
@@ -245,7 +283,7 @@ axis(2, las=1, at=seq(2000, yAxisMax,2000))
 dev.off()
 
 # Boxplot comparing relative positions of genes (absolute position / number of suggested genes found).
-postscript(paste0(imgExportDir, 'benchmarking_gene_position_relative.eps'), width=6, height=8)
+postscript(paste0(imgExportDir, 'benchmarking_gene_position_relative.eps'), width=7, height=8)
 boxplot(relativePositionResults, xaxt='n',yaxt='n', pch="")
 abline(h=seq(0, 1, 0.05), col="gray92")
 boxplot(relativePositionResults, las=1, pch=20,
@@ -254,52 +292,40 @@ boxplot(relativePositionResults, las=1, pch=20,
 dev.off()
 
 # Barplot showing the tool rankings.
-postscript(paste0(imgExportDir, 'benchmarking_tool_ranking.eps'), width=6, height=4)
-colors <- rev(brewer.pal(5, 'RdYlGn'))
+postscript(paste0(imgExportDir, 'benchmarking_tool_ranking.eps'), width=7, height=4)
+colors <- rev(brewer.pal(6, 'RdYlGn'))
 barplot(t(toolRankingResultCounts), col=colors, las=1,
         main="gene position ranked among the tools")
 par(xpd=TRUE) # no clipping for drawing outside plot
-legend(-0.2,-80, c("first","second", "third", "fourth", "no hit"),
-       fill=colors, ncol=5)
+legend(0,-80, colnames(toolRankingResultCounts),
+       fill=colors, ncol=ncol(toolRankingResultCounts))
 dev.off()
 
 # Venn diagram basic settings.
 colors <- brewer.pal(ncol(positionResults), 'Set3')
 
 # Plot differences in whether the gene was found.
-cairo_ps(paste0(imgExportDir, 'benchmarking_overlap_genes_found_absolute.eps'), width=8, height=8)
-grid.draw(venn.diagram(apply(!is.na(positionResults), 2, which), NULL,
-                       main.fontfamily="Helvetica", sub.fontfamily="Helvetica",
-                       fontfamily="Helvetica", cat.fontfamily="Helvetica",
-                       fill=colors))
-grid.text(sum(apply(is.na(positionResults), 1, all)),0.5,0.82)
+cairo_ps(paste0(imgExportDir, 'benchmarking_overlap_genes_found_absolute.eps'), width=7, height=7)
+drawBenchmarkQuintupleVenn(apply(!is.na(positionResults), 2, which),
+                           sum(apply(is.na(positionResults), 1, all)))
 dev.off()
 
 # Plot differences in whether the gene was found within the first 100 positions.
-cairo_ps(paste0(imgExportDir, 'benchmarking_overlap_genes_found_absolute_max_100.eps'), width=8, height=8)
-grid.draw(venn.diagram(apply(positionResults <=100, 2, which), NULL,
-                       main.fontfamily="Helvetica", sub.fontfamily="Helvetica",
-                       fontfamily="Helvetica", cat.fontfamily="Helvetica",
-                       fill=colors))
-grid.text(sum(apply(positionResults > 100, 1, all, na.rm=T)),0.5,0.82)
+cairo_ps(paste0(imgExportDir, 'benchmarking_overlap_genes_found_absolute_max_100.eps'), width=7, height=7)
+drawBenchmarkQuintupleVenn(apply(positionResults <=100, 2, which),
+                           sum(apply(positionResults > 100, 1, all, na.rm=T)))
 dev.off()
 
 # Plot differences in whether the gene was found within the first 20 positions.
-cairo_ps(paste0(imgExportDir, 'benchmarking_overlap_genes_found_absolute_max_020.eps'), width=8, height=8)
-grid.draw(venn.diagram(apply(positionResults <=20, 2, which), NULL,
-                       main.fontfamily="Helvetica", sub.fontfamily="Helvetica",
-                       fontfamily="Helvetica", cat.fontfamily="Helvetica",
-                       fill=colors))
-grid.text(sum(apply(positionResults > 20, 1, all, na.rm=T)),0.5,0.82)
+cairo_ps(paste0(imgExportDir, 'benchmarking_overlap_genes_found_absolute_max_020.eps'), width=7, height=7)
+drawBenchmarkQuintupleVenn(apply(positionResults <=20, 2, which),
+                           sum(apply(positionResults > 20, 1, all, na.rm=T)))
 dev.off()
 
 # Plot differences in whether the gene was found within the first 20 positions.
-cairo_ps(paste0(imgExportDir, 'benchmarking_overlap_genes_found_relative_max_0dot1.eps'), width=8, height=8)
-grid.draw(venn.diagram(apply(relativePositionResults <=0.2, 2, which), NULL,
-                       main.fontfamily="Helvetica", sub.fontfamily="Helvetica",
-                       fontfamily="Helvetica", cat.fontfamily="Helvetica",
-                       fill=colors))
-grid.text(sum(apply(relativePositionResults > 0.2, 1, all, na.rm=T)),0.5,0.82)
+cairo_ps(paste0(imgExportDir, 'benchmarking_overlap_genes_found_relative_max_0dot1.eps'), width=7, height=7)
+drawBenchmarkQuintupleVenn(apply(relativePositionResults <=0.2, 2, which),
+                           sum(apply(relativePositionResults > 0.2, 1, all, na.rm=T)))
 dev.off()
 
 postscript(paste0(imgExportDir, 'benchmarking_first_rank_phenotype_frequencies.eps'), width=10, height=6)
