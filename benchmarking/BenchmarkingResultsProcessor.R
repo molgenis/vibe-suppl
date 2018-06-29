@@ -31,6 +31,10 @@ library(RColorBrewer)
 #
 # Input:
 # filePath -  The path to the file to be loaded.
+#
+# Output:
+# A table from the result data. Though as the input is expected to only contain
+# 2 columns and one of these is used as row names, type becomes a list.
 ########
 readResultFile <- function(filePath) {
   read.table(paste0(baseDir, filePath),
@@ -73,7 +77,7 @@ resultsPositionCalculator <- function(benchmarkData, benchmarkResults) {
 # corresponding LOVD in benchmarkResults and then defines the gene position.
 #
 # Input:
-# benchmarkDataRow - a list (row from benchmarkData given by
+# benchmarkDataRow - A list (row from benchmarkData given by
 #                    resultsPositionCalculator) containing an LOVD and a gene.
 # benchmarkResults - All the output from a benchmark. Each row contains the LOVD
 #                    as row name and the ordered genes as a column named "genes"
@@ -87,10 +91,41 @@ singleResultPositionCalculator <- function(benchmarkDataRow, benchmarkResults) {
         strsplit(benchmarkResults[benchmarkDataRow["lovd"],"suggested_genes"], ",")[[1]])
 }
 
+########
+# Name:
+# calculateTotalGenesFound
+#
+# Description:
+# Calculates the total number of genes per item for the input list benchmarkResults.
+#
+# Input:
+# benchmarkResults - All the output from a benchmark. Each row contains the LOVD
+#                    as row name and the ordered genes as a column named "genes"
+#                    (these genes are comma-separated within this single field).
+#
+# Output:
+# An integer vector containing the total number of genes for each (named) item
+# (in the row order of benchmarkResults).
+########
 calculateTotalGenesFound <- function(benchmarkResults) {
   unlist(lapply(sapply(benchmarkResults[,"suggested_genes"], strsplit, split=","), length), use.names=FALSE)
 }
 
+########
+# Name:
+# sortRows
+#
+# Description:
+# Orders the rows based on their row name.
+#
+# Input:
+# benchmarkResults - All the output from a benchmark. Each row contains the LOVD
+#                    as row name and the ordered genes as a column named "genes"
+#                    (these genes are comma-separated within this single field).
+#
+# Output:
+# benchmarkResults with the rows ordered on their name.
+########
 sortRows <- function(benchmarkResults) {
   benchmarkResults[order(as.numeric(rownames(benchmarkResults))), , drop=FALSE]
 }
@@ -100,18 +135,21 @@ sortRows <- function(benchmarkResults) {
 # drawBenchmarkQuintupleVenn
 #
 # Description:
-# Draws a venn diagram using data as input and writes text outside of it indicating the number from outside to show
-# how many were not included by any of the items from the venn diagram.
+# Draws a venn diagram using data as input and writes text outside of it
+# indicating the number from outside to show how many were not included by any
+# of the items from the venn diagram.
 #
 # Input:
-# data - A list of vectors (e.g., integers, chars), with each component corresponding to a separate circle in the Venn
-#        diagram (direct citation from venn.diagram() from the library VennDiagram).
-# outside - a number indicating how many hits were outside the venn diagram.
+# data - A list of vectors (e.g., integers, chars), with each component
+#        corresponding to a separate circle in the Venn diagram (direct citation
+#        from venn.diagram() from the library VennDiagram).
+# outside - A number indicating how many hits were outside the venn diagram.
+# colors - The colors to be used for the venn diagram.
 #
 # Output:
 #
 ########
-drawBenchmarkQuintupleVenn <- function(data, outside) {
+drawBenchmarkQuintupleVenn <- function(data, outside, colors) {
   grid.draw(venn.diagram(data, NULL,
                          fontfamily="Helvetica", main.fontfamily="Helvetica",
                          sub.fontfamily="Helvetica", cat.fontfamily="Helvetica",
@@ -183,6 +221,8 @@ totalResults <- data.frame(amelie=calculateTotalGenesFound(amelie),
                            phenotips=calculateTotalGenesFound(phenotips),
                            vibe.20180503=calculateTotalGenesFound(vibe.20180503),
                            row.names=rownames(amelie))
+
+# Replicates some of the totalResults so that size is euql to positionResults.
 totalResults <- totalResults[benchmarkData$lovd,]
 
 
@@ -193,13 +233,13 @@ relativePositionResults <- positionResults / totalResults
 resultsWithNa <- positionResults[apply(apply(positionResults, c(1,2), is.na), 1, any),]
 naCounts <- apply(apply(resultsWithNa, c(1,2), is.na), 2, sum)
 
-### Calculate absolute tool rankings.
+# Calculate absolute tool rankings.
 toolRankingResults <- sapply(apply(positionResults, 1, sort, na.last=NA), names)
 toolRankingResults <- sapply(1:5, function(x) { sapply(toolRankingResults, '[', x) })
 colnames(toolRankingResults) <- c("first", "second", "third", "fourth", "fifth")
 
 toolRankingResultCounts <- apply(toolRankingResults, 2, function(x) {
-  table(factor(x, levels=colnames(positionResults)))
+  table(factor(x, levels=colnames(positionResults))) # Factor ensures zeros can be "counted" with table.
   })
 toolRankingResultCounts <- cbind(toolRankingResultCounts, "no hit"=naCounts)
 
@@ -220,7 +260,11 @@ phenotypeCountsWhenToolRankedFirst <- data.frame(amelie=rep(0,length(allPhenotyp
 # merges all phenotypes and looks at how often each phenotypes occur.
 foundCounts <-
   sapply(rownames(toolRankingResultCounts), function(toolName) {
+    # All phenotype frequencies for a single tool in the cases it ranked best.
     table(unlist(
+      # toolRankingResults[,"first"]==toolName filters benchmarkData on the
+      # phenotype-sets where toolName ranked "first".
+      # 5 is the phenotype names column in benchmarkData.
       sapply(benchmarkData[which(toolRankingResults[,"first"]==toolName),5],
              strsplit, ";"),
       use.names=FALSE))
@@ -231,6 +275,9 @@ for(toolName in colnames(phenotypeCountsWhenToolRankedFirst)) {
   phenotypeCountsWhenToolRankedFirst[names(foundCounts[[toolName]]),toolName] <- foundCounts[[toolName]]
 }
 rm(foundCounts)
+
+# The frequencies of the input phenotypes for which a tool ranked first (no all NA).
+phenotypeTotals <- apply(phenotypeCountsWhenToolRankedFirst, 1, sum)
 
 
 
@@ -255,6 +302,10 @@ apply(toolRankingResultCounts, 1, sum)
 ###
 ### Plotting figures.
 ###
+
+# Generics.
+GreenToRedColors <- rev(brewer.pal(6, 'RdYlGn'))
+toolColors <- brewer.pal(ncol(positionResults), 'Set3')
 
 # Boxplot comparing absolute positions of genes.
 postscript(paste0(imgExportDir, 'benchmarking_gene_position_absolute.eps'), width=7, height=8)
@@ -293,48 +344,70 @@ dev.off()
 
 # Barplot showing the tool rankings.
 postscript(paste0(imgExportDir, 'benchmarking_tool_ranking.eps'), width=7, height=4)
-colors <- rev(brewer.pal(6, 'RdYlGn'))
-barplot(t(toolRankingResultCounts), col=colors, las=1,
+barplot(t(toolRankingResultCounts), col=GreenToRedColors, las=1,
         main="gene position ranked among the tools")
 par(xpd=TRUE) # no clipping for drawing outside plot
 legend(0,-80, colnames(toolRankingResultCounts),
-       fill=colors, ncol=ncol(toolRankingResultCounts))
+       fill=GreenToRedColors, ncol=ncol(toolRankingResultCounts))
 dev.off()
-
-# Venn diagram basic settings.
-colors <- brewer.pal(ncol(positionResults), 'Set3')
 
 # Plot differences in whether the gene was found.
 cairo_ps(paste0(imgExportDir, 'benchmarking_overlap_genes_found_absolute.eps'), width=7, height=7)
 drawBenchmarkQuintupleVenn(apply(!is.na(positionResults), 2, which),
-                           sum(apply(is.na(positionResults), 1, all)))
+                           sum(apply(is.na(positionResults), 1, all)),
+                           toolColors)
 dev.off()
 
 # Plot differences in whether the gene was found within the first 100 positions.
-cairo_ps(paste0(imgExportDir, 'benchmarking_overlap_genes_found_absolute_max_100.eps'), width=7, height=7)
+cairo_ps(paste0(imgExportDir, 'benchmarking_overlap_genes_found_absolute_max_1000.eps'), width=7, height=7)
+drawBenchmarkQuintupleVenn(apply(positionResults <=1000, 2, which),
+                           sum(apply(positionResults > 1000, 1, all, na.rm=T)),
+                           toolColors)
+dev.off()
+
+# Plot differences in whether the gene was found within the first 100 positions.
+cairo_ps(paste0(imgExportDir, 'benchmarking_overlap_genes_found_absolute_max_0100.eps'), width=7, height=7)
 drawBenchmarkQuintupleVenn(apply(positionResults <=100, 2, which),
-                           sum(apply(positionResults > 100, 1, all, na.rm=T)))
+                           sum(apply(positionResults > 100, 1, all, na.rm=T)),
+                           toolColors)
 dev.off()
 
 # Plot differences in whether the gene was found within the first 20 positions.
-cairo_ps(paste0(imgExportDir, 'benchmarking_overlap_genes_found_absolute_max_020.eps'), width=7, height=7)
+cairo_ps(paste0(imgExportDir, 'benchmarking_overlap_genes_found_absolute_max_0020.eps'), width=7, height=7)
 drawBenchmarkQuintupleVenn(apply(positionResults <=20, 2, which),
-                           sum(apply(positionResults > 20, 1, all, na.rm=T)))
+                           sum(apply(positionResults > 20, 1, all, na.rm=T)),
+                           toolColors)
 dev.off()
 
 # Plot differences in whether the gene was found within the first 20 positions.
 cairo_ps(paste0(imgExportDir, 'benchmarking_overlap_genes_found_relative_max_0dot1.eps'), width=7, height=7)
 drawBenchmarkQuintupleVenn(apply(relativePositionResults <=0.2, 2, which),
-                           sum(apply(relativePositionResults > 0.2, 1, all, na.rm=T)))
+                           sum(apply(relativePositionResults > 0.2, 1, all, na.rm=T)),
+                           toolColors)
 dev.off()
 
 postscript(paste0(imgExportDir, 'benchmarking_first_rank_phenotype_frequencies.eps'), width=10, height=6)
-par(mar=c(10,4,4,2))
-barplot(t(phenotypeCountsWhenToolRankedFirst[apply(phenotypeCountsWhenToolRankedFirst, 1, function(x) { any(x>2) }),]),
-        col=colors, las=2, cex.names=0.5, space=0,
-        main="input phenotype frequencies when a tool ranked first in finding the gene\n(frequency > 2 for a single tool)",
+par(mar=c(11,4,4,0))
+#barplot(t(phenotypeCountsWhenToolRankedFirst[apply(phenotypeCountsWhenToolRankedFirst, 1, function(x) { any(x>2) }),]),
+#        col=colors, las=2, cex.names=0.5, space=0,
+#        main="input phenotype frequencies when a tool ranked first in finding the gene\n(frequency > 2 for a single tool)",
+#        ylab="phenotype input frequency")
+dataToPlot <- t(phenotypeCountsWhenToolRankedFirst[which(phenotypeTotals > 4),])
+barplot(dataToPlot,
+        col=toolColors, las=2, cex.names=0.5, space=0,
+        main="input phenotype frequencies when a tool ranked first in finding the gene\n(total frequency > 3)", # excludes input phenotypes with only NA
         ylab="phenotype input frequency")
 legend(0,80, colnames(phenotypeCountsWhenToolRankedFirst),
-       fill=colors)
+       fill=toolColors)
 dev.off()
-par(oldPar)
+
+postscript(paste0(imgExportDir, 'benchmarking_first_rank_phenotype_frequencies_relative.eps'), width=10, height=6)
+par(mar=c(11,4,4,8))
+barplot(prop.table(dataToPlot, 2),
+        col=toolColors, las=2, cex.names=0.5, space=0, border="white",
+        main="relative input phenotype frequencies when a tool ranked first in finding the gene\n(only phenotypes with total frequency > 3)", # excludes input phenotypes with only NA
+        ylab="phenotype input frequency")
+par(xpd=TRUE) # no clipping for drawing outside plot
+legend(100,1, colnames(phenotypeCountsWhenToolRankedFirst),
+       fill=toolColors)
+dev.off()
