@@ -105,7 +105,7 @@ def retrieveGeneNetworkResults(lovdPhenotypes, outDir):
         uri = "https://www.genenetwork.nl/api/v1/prioritization/" + ",".join(lovdPhenotypes.get(lovd))
 
         # Waits till elapsed time exceeds 1 second.
-        waitTillElapsed(1, time() - requestTime)
+        waitTillElapsed(2, time() - requestTime)
 
         # Tries to make a request to the REST API with the JSON String.
         # If an HTTPError is triggered, this is printed and then no further benchmarking data will be uploaded.
