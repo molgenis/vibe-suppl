@@ -117,7 +117,7 @@ def generateBashScripts(phenotypeIdsByName, lovdPhenotypes, outDir, runLimit):
             bashFile.write(" && \n")
 
         # Writes the basic part of a java call.
-        bashFile.write("time( java -XX:ParallelGCThreads=1  -Xmx4g -jar vibe-with-dependencies.jar -t TDB_" + str(fileCounter) + "/ -s gda_max -o results/" + lovd + ".tsv")
+        bashFile.write("time( java -XX:ParallelGCThreads=1  -Xmx4g -jar vibe-with-dependencies.jar -v -t TDB_" + str(fileCounter) + "/ -s gda_max -o results/" + lovd + ".tsv")
 
         # Adds all phenotypes to the java call belonging to the LOVD.
         for phenotypeName in lovdPhenotypes.get(lovd):
