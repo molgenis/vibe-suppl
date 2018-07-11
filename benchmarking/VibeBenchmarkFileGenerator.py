@@ -119,11 +119,6 @@ def processVibeFile(fileWriter, filePath, sortColumn, reverseOrder):
         lineSplits = line.strip().split("\t")
         geneScores[lineSplits[0]] = float(lineSplits[sortColumn])
 
-    for i,key in enumerate(sorted(geneScores, key=geneScores.get, reverse=reverseOrder)):
-        print(key + " - " + str(geneScores.get(key)))
-        if i > 1000:
-            exit(0)
-
     # Sorts the output on the gene values (score) and writes this to the output file.
     fileWriter.write(','.join(sorted(geneScores, key=geneScores.get, reverse=reverseOrder)))
 
