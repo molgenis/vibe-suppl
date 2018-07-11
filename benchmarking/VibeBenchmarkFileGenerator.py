@@ -120,7 +120,7 @@ def processVibeFile(fileWriter, filePath, sortColumn, reverseOrder):
         geneScores[lineSplits[0]] = float(lineSplits[sortColumn])
 
     # Sorts the output on the gene values (score) and writes this to the output file.
-    fileWriter.write(','.join(sorted(geneScores, key=geneScores.get, reverse=reverseOrder)))
+    fileWriter.write(','.join(sorted(geneScores, key=geneScores.get, reverse=reverseOrder)) + '\n')
 
 
 if __name__ == '__main__':
