@@ -25,8 +25,8 @@ def processAmelieFile(fileWriter, filePath):
         # Skips header line.
         if i == 0:
             continue
-        if i > 1:
-            fileWriter.write(",")
+
+        fileWriter.write(",")
         fileWriter.write(line.split("\t")[0])
     fileWriter.write("\n")
 
