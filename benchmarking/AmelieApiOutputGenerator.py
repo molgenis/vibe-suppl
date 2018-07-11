@@ -26,6 +26,7 @@ from BenchmarkGenerics import retrieveLovdPhenotypes
 from BenchmarkGenerics import convertPhenotypeNamesToIds
 from BenchmarkGenerics import retrieveAllGenes
 from BenchmarkGenerics import chunkList
+from BenchmarkGenerics import waitTillElapsed
 
 
 def main():
@@ -85,6 +86,8 @@ def retrieveAmelieResults(lovdPhenotypes, hgncs, outDir):
     a file with the LOVD name (<lovd>.tsv), that LOVD is skipped (allowing of continuing the benchmark later on if stopped).
     :param lovdPhenotypes: benchmark data with as key the LOVD and as value a list of HPO IDs
     :param hgncs: a set with all unique HGNC symbols
+    :param outDir: the directory to write the output files to (and used to check whether a benchmark for that LOVD was
+    already done)
     :return:
     """
     # Chunks for amelie retrieval (too many for all at once).
@@ -111,11 +114,9 @@ def retrieveAmelieResults(lovdPhenotypes, hgncs, outDir):
         # Goes through all gene chunks (not all genes can be processed at once).
         for i, hgncsChunk in enumerate(hgncs):
             print("chunk: " + str(i+1) + "/" + str(len(hgncs)))
-            # Checks if previous request finished at least 1 second ago, and if not, sleeps 1 second before making
-            # another request.
-            elapsedTime = time() - requestTime
-            if elapsedTime < 1:
-                sleep(1)
+
+            # Waits till elapsed time exceeds 1 second.
+            waitTillElapsed(1, time() - requestTime)
 
             # Tries to make a request to the REST API with the JSON String.
             # If an HTTPError is triggered, this is printed and then no further benchmarking data will be uploaded.
