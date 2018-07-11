@@ -1,9 +1,9 @@
 #!/user/bin/env python3
 """
 Name:
-    AmelieApiOutputGenerator.py
+    AmelieBenchmarkRunner.py
 Example:
-    AmelieApiOutputGenerator.py hp.obo hgnc_complete_set.txt benchmark_data.tsv api_output/
+    AmelieBenchmarkRunner.py hp.obo hgnc_complete_set.txt benchmark_data.tsv api_output/
 
 Description:
     Retrieves data from https://amelie.stanford.edu/ using the API, processes this and writes the output to multiple

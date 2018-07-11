@@ -6,7 +6,7 @@ Example:
     AmelieBenchmarkFileGenerator.py api_output/ output.tsv
 
 Description:
-    Processes the output from AmelieApiOutputGenerator.py for usage in R plots.
+    Processes the output from AmelieBenchmarkRunner.py for usage in R plots.
 """
 
 from BenchmarkGenerics import fileMergerParser

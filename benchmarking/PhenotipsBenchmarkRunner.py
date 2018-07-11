@@ -1,9 +1,9 @@
 #!/user/bin/env python3
 """
-Name: PhenotipsBenchmarkFileGenerator.py
+Name: PhenotipsBenchmarkRunner.py
 
 Example:
-    PhenotipsBenchmarkFileGenerator.py http://localhost:8080/ username hp.obo benchmark_data.tsv out.tsv
+    PhenotipsBenchmarkRunner.py http://localhost:8080/ username hp.obo benchmark_data.tsv out.tsv
 
 Description:
     Uploads benchmark data to Phenotips using HPO data (as an .obo file) and then downloads suggested genes.

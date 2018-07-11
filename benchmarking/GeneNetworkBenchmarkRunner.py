@@ -1,9 +1,9 @@
 #!/user/bin/env python3
 """
 Name:
-    GeneNetworkApiOutputGenerator.py
+    GeneNetworkBenchmarkRunner.py
 Example:
-    GeneNetworkApiOutputGenerator.py hp.obo benchmark_data.tsv api_output/
+    GeneNetworkBenchmarkRunner.py hp.obo benchmark_data.tsv api_output/
 
 Description:
     Retrieves data from the API https://www.genenetwork.nl/api/v1 and writes the genes with weightedZScore to files

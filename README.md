@@ -6,7 +6,10 @@ This repo contains supplemental files regarding the Java application found [here
 ### Scripts
 
 There are several benchmarking scripts available with some generic code used by multiple benchmarks in a separate file.
-An explanation on how to run the can be found below.
+An explanation on how to run the can be found below. In general, the `Runner` scripts runs the benchmark while the
+`FileGenerator` script (if available) formats the `Runner` output to a more usable format. Some exceptions are present,
+such as for vibe where there is a `ParallelBashScriptsGenerator` instead. So please refer to to
+<a href="#running-the-benchmarks">this section<a/> for more information regarding running the individual benchmarks.
 
 * __`AmelieApiOutputGenerator.py`__
     * __Info:__ Connects to `https://amelie.stanford.edu/api/` to retrieve the gene scores for each set of HPO terms
@@ -14,7 +17,7 @@ An explanation on how to run the can be found below.
     number of entered genes, the [complete HGNC dataset][hgnc_complete]
     is used and divided over multiple separate requests so that all genes get a score. As the scores are only sorted
     per request, a sort on all genes is done prior to file writing.
-* __`AmelieBenchmarkFileGenerator.py`__
+* __`AmelieBenchmarkRunner.py`__
     * __Info:__ Converts the output from `AmelieApiOutputGenerator.py` for usage in `BenchmarkResultsProcessor.R`.
 * __`BenchmarkGenerics.py`__
     * __Info:__ Contains methods used in multiple scripts.
@@ -22,17 +25,20 @@ An explanation on how to run the can be found below.
     to run the benchmarks there), be sure to include this file within the same directory.
 * __`BenchmarkResultsProcessor.R`__
     * __Info:__ Creates plots from the benchmark data.
+* __`GeneNetworkBenchmarkRunner.py`__
+    * __Info:__ Connects to the API from `https://www.genenetwork.nl/` to retrieve the prioritized genes based on input
+    phenotypes.
 * __`PhenomizerBenchmarkFileGenerator.py`__
     * __Info:__ Converts the output from `PhenomizerBenchmarkRunner.py` for usage in `BenchmarkResultsProcessor.R`.
 * __`PhenomizerBenchmarkRunner.py`__
     * __Info:__ Uses the [query_phenomizer][query_phenomizer] python tool to process all benchmark data.
     * __Important:__ [query_phenomizer][query_phenomizer] needs to be installed on the system. Additionally, an account
     is needed for running [query_phenomizer][query_phenomizer].
-* __`PhenotipsBenchmarkFileGenerator.py`__
+* __`PhenotipsBenchmarkRunner.py`__
     * __Info:__ Uses the API of Phenotips to upload the benchmark dataset and then download the results.
     * __Important:__ A phenotips instince to which can be connected is required. Please refer to the
     [Phenotips download page][phenotips_download] for more information.
-* __`VibeBenchmarkBashScriptsGenerator.py`__
+* __`VibeBenchmarkParallelBashScriptsGenerator.py`__
     * __Info:__ Generates bash files used for benchmarking. For each
     * __Important:__ As each VIBE instance needs a separate database, please refer to the information in the script
     itself for how to prepare for the benchmarking correctly.
@@ -59,7 +65,7 @@ There are several files used among these scripts. These include:
 
 1. Run benchmark:
     ```
-    AmelieApiOutputGenerator.py hp.obo hgnc_complete_set.txt benchmark_data.tsv amelie_api_output/
+    AmelieBenchmarkRunner.py hp.obo hgnc_complete_set.txt benchmark_data.tsv amelie_api_output/
     ```
 
 2. Process benchmark output:
@@ -92,7 +98,7 @@ There are several files used among these scripts. These include:
 
 2. Run benchmark:
     ```
-    PhenotipsBenchmarkFileGenerator.py http://localhost:8080/ username hp.obo benchmark_data.tsv phenotips_results.tsv
+    PhenotipsBenchmarkRunner.py http://localhost:8080/ username hp.obo benchmark_data.tsv phenotips_results.tsv
     ```
 
 #### Vibe
@@ -101,7 +107,7 @@ There are several files used among these scripts. These include:
 
 2. Prepare benchmark parallel processing:
     ```
-    VibeBenchmarkBashScriptsGenerator.py hp.obo benchmark_data.tsv ./ 50
+    VibeBenchmarkParallelBashScriptsGenerator.py hp.obo benchmark_data.tsv ./ 50
     
     # Rename TDB to be coherent with parallel bash script requirements.
     mv TDB/ TDB0/
