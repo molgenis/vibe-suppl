@@ -65,7 +65,7 @@ def parseCommandLine():
         parser.error('"' + args.tsv.split('/')[-1] + '" is not an existing file')
 
     if not isdir(args.out):
-        parser.error('"' + args.out.split('/')[-1] + '" is not a valid directory')
+        parser.error('"' + args.out + '" is not a valid directory')
 
     return args
 
@@ -98,11 +98,9 @@ def retrieveGeneNetworkResults(lovdPhenotypes, outDir):
         # File to write output to.
         fileWriter = open(outFile, 'w')
 
-        # Writes the header to the file.
-        fileWriter.write("gene\tweightedZScore\n")
-
         # The request uri used to retrieve the results.
-        uri = "https://www.genenetwork.nl/api/v1/prioritization/" + ",".join(lovdPhenotypes.get(lovd))
+        uri = "https://www.genenetwork.nl/api/v1/tabdelim"
+        data = {"what":"diagnosis", "terms":",".join(lovdPhenotypes.get(lovd))}
 
         # Waits till elapsed time exceeds 1 second.
         waitTillElapsed(2, time() - requestTime)
@@ -110,7 +108,7 @@ def retrieveGeneNetworkResults(lovdPhenotypes, outDir):
         # Tries to make a request to the REST API with the JSON String.
         # If an HTTPError is triggered, this is printed and then no further benchmarking data will be uploaded.
         try:
-            response = post(uri, verify=False, timeout=(6, 12))
+            response = post(uri, data, verify=False, timeout=(6, 12))
             response.raise_for_status()
         except (ConnectionError, HTTPError, ReadTimeout) as e:
             exit(e)
@@ -118,9 +116,8 @@ def retrieveGeneNetworkResults(lovdPhenotypes, outDir):
         # Stores the current time for managing time between requests.
         requestTime = time()
 
-        # Writes results to file.
-        for result in response.json()["results"]:
-            fileWriter.write(result["gene"]["name"] + "\t" + str(result["weightedZScore"]) + "\n")
+        # Writes output to file.
+        fileWriter.write(response.text)
 
         # Closes file.
         fileWriter.flush()
