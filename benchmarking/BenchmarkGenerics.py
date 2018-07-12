@@ -192,6 +192,9 @@ def mergeFiles(fileProcessor, inDir, outFile):
             # Processes file content.
             fileProcessor(fileWriter, filePath)
 
+            # Writes a newline so that each processed file has its own line in the output file.
+            fileWriter.write("\n")
+
     # Flushes and closes writer.
     fileWriter.flush()
     fileWriter.close()

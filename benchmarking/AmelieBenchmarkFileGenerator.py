@@ -28,7 +28,6 @@ def processAmelieFile(fileWriter, filePath):
         if i > 1:
             fileWriter.write(",")
         fileWriter.write(line.split("\t")[0])
-    fileWriter.write("\n")
 
 
 if __name__ == '__main__':

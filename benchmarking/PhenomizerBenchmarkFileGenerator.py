@@ -43,9 +43,6 @@ def processPhenomizerFile(fileWriter, filePath):
     # Writes the genes to the file while removing duplicates (first mention is kept).
     fileWriter.write(",".join(removeDuplicates(allGenes)))
 
-    # Writes a newline to indicate the last gene from this file has been processed.
-    fileWriter.write("\n")
-
 
 if __name__ == '__main__':
     main()
