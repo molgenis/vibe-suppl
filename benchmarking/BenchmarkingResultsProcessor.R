@@ -202,7 +202,7 @@ toolValuesBoxPlot <- function(data, file, firstYValue, yAxisFreq, yAxisAblineFre
   postscript(file, width=7, height=8)
   
   yAxisMax <- ceiling(max(data, na.rm=T)/yAxisFreq)*yAxisFreq
-  boxplot(data, xaxt='n',yaxt='n', pch="")
+  boxplot(data, ylim=c(firstYValue,yAxisMax), xaxt='n',yaxt='n', pch="")
   abline(h=firstYValue, col="gray92")
   abline(h=seq(yAxisAblineFreq, yAxisMax, yAxisAblineFreq), col="gray92")
   boxplot(data, las=1, pch=20, yaxt='n',
@@ -454,18 +454,18 @@ apply(toolRankingCounts, 1, sum)
 toolColors <- brewer.pal(ncol(positionResults), 'Set3')
 
 # Boxplot comparing absolute positions of genes.
-toolValuesBoxPlot(positionResults,
+toolValuesBoxPlot(log10(positionResults),
                   paste0(imgExportDir, 'benchmarking_gene_position_absolute.eps'),
-                  1, 500, 100,
+                  0, 1, 0.5,
                   "position of relevant genes among different tools",
-                  "position")
+                  "position (log10)")
 
 # Boxplot comparing number of suggested genes found.
-toolValuesBoxPlot(totalResults,
+toolValuesBoxPlot(log10(totalResults),
                   paste0(imgExportDir, 'benchmarking_gene_position_total_hits.eps'),
-                  1, 2000, 500,
+                  0, 1, 0.5,
                   "the number of output genes among different tools",
-                  "number of genes")
+                  "number of genes (log10)")
 
 # Boxplot comparing relative positions of genes (absolute position / number of suggested genes found).
 toolValuesBoxPlot(relativePositionResults,
