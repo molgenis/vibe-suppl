@@ -3,7 +3,7 @@
 Name: PhenomizerBenchmarkRunner.py
 
 Example:
-    PhenomizerBenchmarkRunner.py username hp.obo benchmark_data.tsv api_output/
+    PhenomizerBenchmarkRunner.py username hp.obo benchmark_data.tsv output/
 
 Description:
     Runs the benchmark data through Phenomizer and writes the results to files in the defined output directory.
@@ -22,8 +22,9 @@ from BenchmarkGenerics import readPhenotypes
 from BenchmarkGenerics import retrieveLovdPhenotypes
 from BenchmarkGenerics import convertPhenotypeNamesToIds
 from BenchmarkGenerics import validateProgram
+from BenchmarkGenerics import waitTillElapsed
 from subprocess import call
-from time import sleep
+from time import time
 
 
 def main():
@@ -88,6 +89,9 @@ def retrievePhenomizerResults(lovdPhenotypes, username, password, outDir):
     :return:
     """
 
+    # Stores initial time as negative time() so that sleep is not triggered the first time.
+    requestTime = -time()
+
     # Goes through all LOVDs.
     for lovd in lovdPhenotypes.keys():
         # Defines output file for this LOVD.
@@ -103,14 +107,17 @@ def retrievePhenomizerResults(lovdPhenotypes, username, password, outDir):
         # Generates the command line to run query_phenomizer.
         commandLine = ["query_phenomizer", "-u", username, "-p", password, "-o", outFile] + lovdPhenotypes.get(lovd)
 
+        # Waits till elapsed time exceeds 4 second.
+        waitTillElapsed(4, time() - requestTime)
+
         # Runs query_phenomizer.
         try:
             call(commandLine)
         except Exception as e:
             processQueryPhenomizerException(e)
 
-        # Sleeps before another run is done so that the server is not overloaded.
-        sleep(4)
+        # Stores the current time for managing time between requests.
+        requestTime = time()
 
 
 def processQueryPhenomizerException(exception):
