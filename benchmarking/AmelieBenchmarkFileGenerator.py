@@ -3,7 +3,7 @@
 Name:
     AmelieBenchmarkFileGenerator.py
 Example:
-    AmelieBenchmarkFileGenerator.py api_output/ output.tsv
+    AmelieBenchmarkFileGenerator.py input/ output.tsv
 
 Description:
     Processes the output from AmelieBenchmarkRunner.py for usage in R plots.
@@ -20,6 +20,12 @@ def main():
 
 
 def processAmelieFile(fileWriter, filePath):
+    """
+    Processes a single output file from the amelie benchmark.
+    :param fileWriter: the file to write the output to
+    :param filePath: the path to the file to be processed
+    :return:
+    """
     # Writes the genes in order to file separated by a comma (with a newline at the end).
     for i, line in enumerate(open(filePath)):
         # Skips header line.

@@ -3,7 +3,7 @@
 Name:
     AmelieBenchmarkRunner.py
 Example:
-    AmelieBenchmarkRunner.py hp.obo hgnc_complete_set.txt benchmark_data.tsv api_output/
+    AmelieBenchmarkRunner.py hp.obo hgnc_complete_set.txt benchmark_data.tsv output/
 
 Description:
     Retrieves data from https://amelie.stanford.edu/ using the API, processes this and writes the output to multiple
@@ -20,7 +20,6 @@ from requests.packages.urllib3 import disable_warnings
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from requests import HTTPError
 from time import time
-from time import sleep
 from BenchmarkGenerics import readPhenotypes
 from BenchmarkGenerics import retrieveLovdPhenotypes
 from BenchmarkGenerics import convertPhenotypeNamesToIds

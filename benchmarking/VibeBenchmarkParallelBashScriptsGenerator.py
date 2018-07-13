@@ -3,12 +3,12 @@
 Name:   VibeBenchmarkBashScriptGenerator.py
 
 Example:
-    VibeBenchmarkParallelBashScriptsGenerator.py hp.obo benchmark_data.tsv scripts/ 50
+    VibeBenchmarkParallelBashScriptsGenerator.py hp.obo benchmark_data.tsv output/ 50
 
 Description:
-    Generates bash scripts for running the vibe benchmark. Assumes that for each bash script a unique TDB is present
-    (this is because a TDB can only be accessed by 1 JVM at a time). The scripts should be ran in a folder with the
-    following structure:
+    Generates bash scripts for running the vibe benchmark (in the given output directory). Assumes that for each bash
+    script a unique TDB is present (this is because a TDB can only be accessed by 1 JVM at a time). The scripts should
+    be ran in a folder with the following structure:
 
     + main_folder
     |- vibe_benchmark_0.sh

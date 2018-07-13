@@ -3,7 +3,7 @@
 Name:
     GeneNetworkBenchmarkFileGenerator.py
 Example:
-    GeneNetworkBenchmarkFileGenerator.py api_output/ output.tsv
+    GeneNetworkBenchmarkFileGenerator.py input/ output.tsv
 
 Description:
     Processes the output from AmelieBenchmarkRunner.py for usage in R plots.
@@ -20,6 +20,12 @@ def main():
 
 
 def processGeneNetworkFile(fileWriter, filePath):
+    """
+    Processes a single output file from the gene network benchmark.
+    :param fileWriter: the file to write the output to
+    :param filePath: the path to the file to be processed
+    :return:
+    """
     # Toggle for first line after the hashtag lines (lines should not be skipped anymore starting from the second
     # non-hashtag line).
     header = True

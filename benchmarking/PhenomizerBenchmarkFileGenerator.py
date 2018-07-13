@@ -3,7 +3,7 @@
 Name:
     PhenomizerBenchmarkFileGenerator.py
 Example:
-    PhenomizerBenchmarkFileGenerator.py api_output/ output.tsv
+    PhenomizerBenchmarkFileGenerator.py input/ output.tsv
 
 Description:
     Processes the output from PhenomizerBenchmarkFileGenerator.py for usage in R plots.
@@ -21,6 +21,12 @@ def main():
 
 
 def processPhenomizerFile(fileWriter, filePath):
+    """
+    Processes a single output file from the phenomizer benchmark.
+    :param fileWriter: the file to write the output to
+    :param filePath: the path to the file to be processed
+    :return:
+    """
     # Stores all the genes from the file.
     allGenes = []
 

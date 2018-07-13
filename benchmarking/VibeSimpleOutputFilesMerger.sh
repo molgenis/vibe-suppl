@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Merges a directory containing VIBE output files (that were generated with "-s" enabled in the VIBE application).
+# Merges a directory containing VIBE output files (that were generated with "-l" enabled in the VIBE application).
 # Usage: sh VibeSimpleOutputFilesMerger.sh ~/path/to/dir
 
 # Sets output file (tmp & final).

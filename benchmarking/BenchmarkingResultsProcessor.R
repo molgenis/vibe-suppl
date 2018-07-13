@@ -135,13 +135,23 @@ sortRows <- function(benchmarkResults) {
 # calculateRankings
 #
 # Description:
-# 
+# Converts a dataframe with tool columns and cells as the benchmark score to
+# a matrix that contains columns for the ranking and the cell values with the
+# toolname that has that ranking. For example: If input contains 2 columns
+# (X & Y) where column Y has the lowest value for a row, the output will contain
+# Y as cell value for the column named "first".
+#
+# IMPORTANT: Currently supports up to 5 columns as input (up to "fifth").
 #
 # Input:
-# 
+# data - A dataframe which needs to be sorted. The columns should contain the
+#        tools that need to be ranked. The rows the individual benchmark tests.
+#        Each cell then contains the benchmark position for the given tool for
+#        that benchmark test.
 #
 # Output:
-#
+# A character matrix with as columns the positions (first, second, etc.), as
+# rows the individual tests and as cell values the tool names.
 ########
 calculateRankings <- function(data) {
   positionNames <- c("first", "second", "third", "fourth", "fifth")
@@ -161,13 +171,25 @@ calculateRankings <- function(data) {
 # calculateRankingCounts
 #
 # Description:
-# 
+# Converts the output from calculateRankings() to a integer matrix containing
+# how often each tool scored which position. Furthermore, adds the NA counts
+# to this matrix as well.
+#
+# IMPORTANT: Make sure that the output from rankingResults() used the same data
+#            as input!!!
 #
 # Input:
-# 
+# data - A dataframe which needs to be sorted. The columns should contain the
+#        tools that need to be ranked. The rows the individual benchmark tests.
+#        Each cell then contains the benchmark position for the given tool for
+#        that benchmark test.
+# rankingResults - The output from calculateRankings() when using THE SAME data
+#                  as input!
 #
 # Output:
-#
+# An integer matrix with as rows the different tools and as columns the
+# rankings ("first", "second", "third" and so forth with "no hit" for if a tool
+# did not find the match at all).
 ########
 calculateRankingCounts <- function(data, rankingResults) {
   # Counts how often each tools scores a specific position (first, second, et cetera).
@@ -190,10 +212,17 @@ calculateRankingCounts <- function(data, rankingResults) {
 # toolValuesBoxPlot
 #
 # Description:
-# 
+# Generates a boxplot using the data as input.
 #
 # Input:
-# 
+# data - The dataframe to create a plot from.
+# file - Full path (including the ".eps" extension) to the location where the
+#        plot should be stored on local storage.
+# firstYValue - The y-axis starting position.
+# yAxisFreq - The frequency for the y-axis labels.
+# yAxisAblineFreq - The frequency of the vertical lines in the plot.
+# main - The plot title.
+# ylab - The y-axis label.
 #
 # Output:
 #
@@ -218,10 +247,17 @@ toolValuesBoxPlot <- function(data, file, firstYValue, yAxisFreq, yAxisAblineFre
 # toolRankingBarplot
 #
 # Description:
-# 
+# Generates a barplot based on the output from calculateRankingCounts().
 #
 # Input:
-# 
+# data - The data to be plotted (in general: the object generated from
+#        calculateRankingCounts() ).
+# file - Full path (including the ".eps" extension) to the location where the
+#        plot should be stored on local storage.
+# legendPos - A vector with 2 positions used for placing the legend().
+#             The first item from the vector will be used for the x-axis
+#             positioning. The second item from the vector will be used for the
+#             y-axis positioning.
 #
 # Output:
 #
@@ -379,7 +415,7 @@ totalResults <- data.frame(amelie=calculateTotalGenesFound(amelie),
                            vibe=calculateTotalGenesFound(vibe),
                            row.names=rownames(amelie))
 
-# Replicates some of the totalResults so that size is euql to positionResults.
+# Replicates some of the totalResults so that size is equal to positionResults.
 totalResults <- totalResults[benchmarkData$lovd,]
 
 

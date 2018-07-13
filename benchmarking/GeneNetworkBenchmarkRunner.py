@@ -3,7 +3,7 @@
 Name:
     GeneNetworkBenchmarkRunner.py
 Example:
-    GeneNetworkBenchmarkRunner.py hp.obo benchmark_data.tsv api_output/
+    GeneNetworkBenchmarkRunner.py hp.obo benchmark_data.tsv output/
 
 Description:
     Retrieves data from the API https://www.genenetwork.nl/api/v1 and writes the genes with weightedZScore to files
