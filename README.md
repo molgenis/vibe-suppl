@@ -78,7 +78,7 @@ There are several files used among these scripts. These include:
     python3 AmelieBenchmarkFileGenerator.py amelie_output/ amelie_results.tsv
     ```
 
-### Gene Network
+#### Gene Network
 
 1. Run benchmark:
     ```
