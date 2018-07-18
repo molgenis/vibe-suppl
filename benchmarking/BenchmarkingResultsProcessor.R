@@ -436,7 +436,7 @@ phenotypeCountsWhenToolRankedFirst <- data.frame(amelie=rep(0,length(allPhenotyp
                                                  geneNetwork=rep(0,length(allPhenotypeNames)),
                                                  phenomizer=rep(0,length(allPhenotypeNames)),
                                                  phenotips=rep(0,length(allPhenotypeNames)),
-                                                 vibe.20180503=rep(0,length(allPhenotypeNames)),
+                                                 vibe=rep(0,length(allPhenotypeNames)),
                                                  row.names=allPhenotypeNames)
 
 # Looks per tool for the phenotype-sets in which it ranked the best and from these
@@ -545,28 +545,33 @@ benchmarkQuintupleVenn(apply(relativePositionResults <=0.2, 2, which),
                        paste0(imgExportDir, 'benchmarking_overlap_genes_found_relative_max_0dot1.eps'),
                        toolColors)
 
+dataToPlot <- t(phenotypeCountsWhenToolRankedFirst[which(phenotypeTotals > 4),])
+dataYMax <- ceiling(max(apply(dataToPlot, 2, sum))/100)*100+2
+
 postscript(paste0(imgExportDir, 'benchmarking_first_rank_phenotype_frequencies.eps'), width=10, height=6)
 par(mar=c(11,4,4,0))
 #barplot(t(phenotypeCountsWhenToolRankedFirst[apply(phenotypeCountsWhenToolRankedFirst, 1, function(x) { any(x>2) }),]),
 #        col=colors, las=2, cex.names=0.5, space=0,
 #        main="input phenotype frequencies when a tool ranked first in finding the gene\n(frequency > 2 for a single tool)",
 #        ylab="phenotype input frequency")
-dataToPlot <- t(phenotypeCountsWhenToolRankedFirst[which(phenotypeTotals > 4),])
+barplot(dataToPlot, xaxt='n',yaxt='n', space=0, ylim=c(0,dataYMax))
+abline(h=seq(0, dataYMax, 5), col="gray92")
+abline(h=seq(0, dataYMax, 20), col="gray72")
 barplot(dataToPlot,
-        col=toolColors, las=2, cex.names=0.5, space=0,
-        main="input phenotype frequencies when a tool ranked first in finding the gene\n(total frequency > 3)", # excludes input phenotypes with only NA
-        ylab="phenotype input frequency")
-legend(0,80, colnames(phenotypeCountsWhenToolRankedFirst),
+        col=toolColors, las=2, cex.names=0.5, space=0, ylim=c(0,dataYMax),
+        main="input phenotype frequencies when a tool ranked first in finding the gene\n(total frequency > 4)", # excludes input phenotypes with only NA
+        ylab="phenotype input frequency", add=TRUE)
+legend(0,98, colnames(phenotypeCountsWhenToolRankedFirst), bg="white",
        fill=toolColors)
 dev.off()
 
 postscript(paste0(imgExportDir, 'benchmarking_first_rank_phenotype_frequencies_relative.eps'), width=10, height=6)
-par(mar=c(11,4,4,9))
+par(mar=c(11,4,4,6.5))
 barplot(prop.table(dataToPlot, 2),
         col=toolColors, las=2, cex.names=0.5, space=0, border="white",
-        main="relative input phenotype frequencies when a tool ranked first in finding the gene\n(only phenotypes with total frequency > 3)", # excludes input phenotypes with only NA
+        main="relative input phenotype frequencies when a tool ranked first in finding the gene\n(only phenotypes with total frequency > 4)", # excludes input phenotypes with only NA
         ylab="phenotype input frequency")
 par(xpd=TRUE) # no clipping for drawing outside plot
-legend(90,1, colnames(phenotypeCountsWhenToolRankedFirst),
+legend(100,1, colnames(phenotypeCountsWhenToolRankedFirst),
        fill=toolColors)
 dev.off()
