@@ -313,6 +313,44 @@ benchmarkQuintupleVenn <- function(data, outside, file, colors) {
   dev.off()
 }
 
+########
+# Name:
+# hitPositionsScatterplot
+#
+# Description:
+#
+#
+# Input:
+#
+#
+# Output:
+#
+########
+hitPositionsScatterplot <- function(data, file, colors, xAxisFreq, yAxisFreq, xlab, ylab) {
+  # Renames colnames for universal usage.
+  colnames(data) <- c("x", "y", "group")
+
+  # Calculates highest x & y value.
+  xAxisMax <- ceiling(max(data[,1], na.rm=T)/xAxisFreq)*xAxisFreq
+  yAxisMax <- ceiling(max(data[,2], na.rm=T)/yAxisFreq)*yAxisFreq
+
+  # Plot total genes against found position.
+  postscript(file, width=8, height=6)
+
+  plot(1, las=1, type="n", bty="u",
+       xlab=xlab,
+       ylab=ylab,
+       xlim=c(0, xAxisMax),
+       ylim=c(0, yAxisMax))
+  abline(h=seq(0,yAxisMax, yAxisFreq), v=seq(0,xAxisMax, xAxisFreq), col="grey92")
+  abline(0,1) # indicates where position limit is (position <= hits)
+  legend("topleft", levels(data[,3]), col=colors,
+         pch=20, bg="white")
+  points(y~x, data, col=colors[group], pch=20)
+
+  dev.off()
+}
+
 
 
 
@@ -487,7 +525,7 @@ apply(toolRankingCounts, 1, sum)
 ###
 
 # Generics.
-toolColors <- brewer.pal(ncol(positionResults), 'Set3')
+toolColors <- brewer.pal(ncol(positionResults), 'Set2')
 
 # Boxplot comparing absolute positions of genes.
 toolValuesBoxPlot(log10(positionResults),
@@ -545,15 +583,13 @@ benchmarkQuintupleVenn(apply(relativePositionResults <=0.2, 2, which),
                        paste0(imgExportDir, 'benchmarking_overlap_genes_found_relative_max_0dot1.eps'),
                        toolColors)
 
+# Data transformation for upcoming plots.
 dataToPlot <- t(phenotypeCountsWhenToolRankedFirst[which(phenotypeTotals > 4),])
 dataYMax <- ceiling(max(apply(dataToPlot, 2, sum))/100)*100+2
 
+# Plot absolute phenotype frequencies grouped by best ranking tool.
 postscript(paste0(imgExportDir, 'benchmarking_first_rank_phenotype_frequencies.eps'), width=10, height=6)
 par(mar=c(11,4,4,0))
-#barplot(t(phenotypeCountsWhenToolRankedFirst[apply(phenotypeCountsWhenToolRankedFirst, 1, function(x) { any(x>2) }),]),
-#        col=colors, las=2, cex.names=0.5, space=0,
-#        main="input phenotype frequencies when a tool ranked first in finding the gene\n(frequency > 2 for a single tool)",
-#        ylab="phenotype input frequency")
 barplot(dataToPlot, xaxt='n',yaxt='n', space=0, ylim=c(0,dataYMax))
 abline(h=seq(0, dataYMax, 5), col="gray92")
 abline(h=seq(0, dataYMax, 20), col="gray72")
@@ -565,6 +601,7 @@ legend(0,98, colnames(phenotypeCountsWhenToolRankedFirst), bg="white",
        fill=toolColors)
 dev.off()
 
+# Plot relative phenotype frequencies grouped by best ranking tool.
 postscript(paste0(imgExportDir, 'benchmarking_first_rank_phenotype_frequencies_relative.eps'), width=10, height=6)
 par(mar=c(11,4,4,6.5))
 barplot(prop.table(dataToPlot, 2),
@@ -575,3 +612,31 @@ par(xpd=TRUE) # no clipping for drawing outside plot
 legend(100,1, colnames(phenotypeCountsWhenToolRankedFirst),
        fill=toolColors)
 dev.off()
+
+rm(dataToPlot)
+par(oldPar)
+
+
+# Data transformation for upcoming plots.
+dataToPlot <- data.frame(hits=unlist(totalResults),
+                         position=unlist(positionResults),
+                         tool=as.factor(sort(rep(colnames(totalResults), nrow(totalResults)))))
+
+# Plots hits compared to total positions without geneNetwork.
+hitPositionsScatterplot(dataToPlot[which(dataToPlot$tool != "geneNetwork"),],
+                        paste0(imgExportDir, 'tools_position_totalHits_no_geneNetwork.eps'),
+                        toolColors, 1000, 1000,
+                        "total hits", "absolute position")
+
+# Transforms values to log10 for second plot.
+dataToPlot$hits <- log10(dataToPlot$hits)
+dataToPlot$position <- log10(dataToPlot$position)
+
+# Plots hits compared to total positions with geneNetwork (log10 transformed).
+hitPositionsScatterplot(dataToPlot,
+                        paste0(imgExportDir, 'tools_position_totalHits_log10.eps'), 
+                        toolColors,
+                        1, 1, 
+                        "total hits (log10)", "absolute position (log10)")
+
+rm(dataToPlot)
