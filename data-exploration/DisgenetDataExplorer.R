@@ -222,7 +222,7 @@ mergeValues <- function(data, sliceSize) {
     restData <- sum(data[(fullSliceLimit+1):dataLength])
     resultData <- c(resultData,restData)
     
-    restLabel <- paste(fullSliceLimit+1, dataLength, sep='-')
+    restLabel <- paste(fullSliceLimit+1, fullSliceLimit+sliceSize, sep='-')
     names(resultData) <- c(resultLabels, restLabel)
   }
   
@@ -288,13 +288,19 @@ nrow(variantDiseasePmidAssociations)
 nrow(variantPhenotypePmidAssociations)
 
 ######## 
+######## Shows the possible disease types.
+########
+unique(geneDiseasePmidAssociations$diseaseType)
+unique(variantDiseasePmidAssociations$diseaseType)
+
+######## 
 ######## Shows number of unique genes for the associations.
 ########
 ( uniqueDiseaseGenes <- length(unique(geneDiseaseAssociations$geneId)) )
 ( uniquePhenotypeGenes <- length(unique(genePhenotypeAssociations$geneId)) )
 
 ylimTop <- ceiling(uniqueDiseaseGenes/1000)
-postscript(paste0(imgExportDir, 'unique-genes.eps'), width=5, height=7)
+postscript(paste0(imgExportDir, 'unique_genes.eps'), width=5, height=5)
 barplot(c(uniqueDiseaseGenes, uniquePhenotypeGenes)/1000, ylim=c(0,ylimTop),
         names.arg=c('any association', 'phenotype association'),
         las=1, space=0, ylab='number of unique genes (per thousand)', col="steelblue4", axes=F)
@@ -307,11 +313,11 @@ rm(uniqueDiseaseGenes, uniquePhenotypeGenes, ylimTop)
 ######## 
 ######## Plots the number of non-NA and NA associations per source.
 ########
-postscript(paste0(imgExportDir, 'pubmed-count-per-source-all.eps'), width=7, height=4)
+postscript(paste0(imgExportDir, 'pubmed_count_per_source_all.eps'), width=7, height=4)
 plotPmids('', countsPerSource)
 dev.off()
 
-postscript(paste0(imgExportDir, 'pubmed-count-per-source-phenotype.eps'), width=7, height=4)
+postscript(paste0(imgExportDir, 'pubmed_count_per_source_phenotype.eps'), width=7, height=4)
 plotPmids('', countsPerSource.phenotype)
 dev.off()
 
@@ -331,7 +337,7 @@ MergedCountsPerSource <- arrange(MergedCountsPerSource, level)
 MergedCountsPerSource.phenotype <- arrange(MergedCountsPerSource.phenotype, level)
 
 # Generates plots.
-postscript(paste0(imgExportDir, 'gene-associations.eps'), width=8, height=4.5)
+postscript(paste0(imgExportDir, 'gene_associations.eps'), width=8, height=4.5)
 plotAssociationsPerSourceAndLevel('',
                                   MergedCountsPerSource, countsPerLevel,
                                   outerRadius=c(0.9, 0.84, 0.76, 0.68, 0.8, 0.7, 0.79),
@@ -342,13 +348,13 @@ plotAssociationsPerSourceAndLevel('',
                                   innerAngleAdjust=-0.08)
 dev.off()
 
-postscript(paste0(imgExportDir, 'gene-phenotype-associations.eps'), width=8, height=4.5)
+postscript(paste0(imgExportDir, 'gene_phenotype_associations.eps'), width=8, height=4.5)
 plotAssociationsPerSourceAndLevel('',
                                   MergedCountsPerSource.phenotype, countsPerLevel.phenotype,
-                                  outerRadius=c(0.9, 0.65, 0.85, 0.6, 0.7, 0.7, 0.75),
+                                  outerRadius=c(0.9, 0.65, 0.85, 0.68, 0.55, 0.7, 0.75, 0.75),
                                   innerRadius=c(0.2,0.3,0.15),
-                                  outerAngles=c(3,4),
-                                  outerAngleAdjust=c(-0.05,0.1))
+                                  outerAngles=c(3,4,5),
+                                  outerAngleAdjust=c(-0.05,0.02,0.1))
 dev.off()
 
 ######## 
