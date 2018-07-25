@@ -40,6 +40,30 @@ sumCounts <- function(data) {
 
 ########
 # Name:
+# calculateCountsPerSource
+#
+# Description:
+# Calculates the count per source.
+#
+# Input:
+# data - a data frame with for each association a row, a column
+#        'originalSource' describing the source for each row and a column 'pmid'
+#        containing either the PMID of the source or NA if not available.
+#
+# Output:
+# A data frame with the different sources as rows and the tool names, PMID counts,
+# NA counts (when PMID was NA) and a total of these two as columns.
+########
+calculateCountsPerSource <- function(data) {
+  countsPerSource <- ddply(data, .(source=originalSource), summarize,
+                           countPmid=sum(!is.na(pmid)), countNA=sum(is.na(pmid)))
+  countsPerSource <- sumCounts(countsPerSource)
+  countsPerSource <- addLevels(countsPerSource)
+  return(countsPerSource)
+}
+
+########
+# Name:
 # plotPmids
 #
 # Description:
@@ -93,9 +117,9 @@ addLevels <- function(data) {
   sourceLevels$literature <- c('GAD', 'LHGDN', 'BEFREE')
   sourceLevels$order <- c('curated', 'animal models', 'literature')
   
-  data$level <- factor(case_when(countsPerSource$source %in% sourceLevels$curated ~ 'curated',
-                                 countsPerSource$source %in% sourceLevels$animal_models ~ 'animal models',
-                                 countsPerSource$source %in% sourceLevels$literature ~ 'literature'),
+  data$level <- factor(case_when(data$source %in% sourceLevels$curated ~ 'curated',
+                                 data$source %in% sourceLevels$animal_models ~ 'animal models',
+                                 data$source %in% sourceLevels$literature ~ 'literature'),
                        levels=sourceLevels$order)
   return(data)
 }
@@ -249,97 +273,83 @@ imgExportDir <- '~/Documents/afstuderen/verslag/img/'
 # Disabled quoting as otherwise not all lines are read ('EOF within quoted string').
 # Disabled comment character as some sentences could contain a #, making a row missing columns.
 
-# Loads gene disease pmid association file and creates second variable for phenotype-only associations.
-geneDiseasePmidAssociations <- read.table(gzfile(paste0(baseDir, 'all_gene_disease_pmid_associations.tsv.gz')),
-                                          header=T, sep='\t', quote="", comment.char="")
-genePhenotypePmidAssociations <- geneDiseasePmidAssociations[geneDiseasePmidAssociations$diseaseType == 'phenotype',]
+# Loads gene disease pmid association file and creates subsets.
+geneAssociationsPmid <- read.table(gzfile(paste0(baseDir, 'all_gene_disease_pmid_associations.tsv.gz')),
+                               header=T, sep='\t', quote="", comment.char="")
+geneDiseaseAssociationsPmid <- geneAssociationsPmid[geneAssociationsPmid$diseaseType == 'disease',]
+geneGroupAssociationsPmid <- geneAssociationsPmid[geneAssociationsPmid$diseaseType == 'group',]
+genePhenotypeAssociationsPmid <- geneAssociationsPmid[geneAssociationsPmid$diseaseType == 'phenotype',]
 
-# Merges the counts per source in non-NA's and NA's + adds a total column.
-countsPerSource <- ddply(geneDiseasePmidAssociations, .(source=originalSource), summarize,
-                         countPmid=sum(!is.na(pmid)), countNA=sum(is.na(pmid)))
-countsPerSource <- sumCounts(countsPerSource)
-countsPerSource.phenotype <- ddply(genePhenotypePmidAssociations, .(source=originalSource), summarize,
-                                   countPmid=sum(!is.na(pmid)), countNA=sum(is.na(pmid)))
-countsPerSource.phenotype <- sumCounts(countsPerSource.phenotype)
-
-# Adds the levels to the data.
-countsPerSource <- addLevels(countsPerSource)
-countsPerSource.phenotype <- addLevels(countsPerSource.phenotype)
+# Calculates the counts per source in non-NA's and NA's PMIDs + adds a total column.
+geneAssociationsSourceCounts <- calculateCountsPerSource(geneAssociationsPmid)
+geneDiseaseAssociationsSourceCounts <- calculateCountsPerSource(geneDiseaseAssociationsPmid)
+geneGroupAssociationsSourceCounts <- calculateCountsPerSource(geneGroupAssociationsPmid)
+genePhenotypeAssociationsSourceCounts <- calculateCountsPerSource(genePhenotypeAssociationsPmid)
 
 # Loads variant disease pmid association file and creates second variable for phenotype-only associations.
-variantDiseasePmidAssociations <- read.table(gzfile(paste0(baseDir, 'all_variant_disease_pmid_associations.tsv.gz')),
+variantAssociationsPmid <- read.table(gzfile(paste0(baseDir, 'all_variant_disease_pmid_associations.tsv.gz')),
                                              header=T, sep='\t', quote="", comment.char="")
-variantPhenotypePmidAssociations <- variantDiseasePmidAssociations[variantDiseasePmidAssociations$diseaseType == 'phenotype',]
+variantDiseaseAssociationsPmid <- variantAssociationsPmid[variantAssociationsPmid$diseaseType == 'disease',]
+variantGroupAssociationsPmid <- variantAssociationsPmid[variantAssociationsPmid$diseaseType == 'group',]
+variantPhenotypeAssociationsPmid <- variantAssociationsPmid[variantAssociationsPmid$diseaseType == 'phenotype',]
 
 # Loads association files created using bash from the "all_gene_disease_pmid_associations.tsv.gz" file.
-geneDiseaseAssociations <- read.table(gzfile(paste0(baseDir, 'complete_gene_disease_associations.tsv.gz')),
-                                      header=T, sep='\t', quote="", comment.char="")
-genePhenotypeAssociations <- read.table(gzfile(paste0(baseDir, 'complete_gene_phenotype_associations.tsv.gz')),
-                                           header=T, sep='\t', quote="", comment.char="")
+geneAssociations <- read.table(gzfile(paste0(baseDir, 'complete_gene_associations.tsv.gz')),
+                               header=T, sep='\t', quote="", comment.char="")
 
 
 
 ######## 
 ######## Shows the number of (phenotype) gene/variant pmid associations.
 ########
-nrow(geneDiseasePmidAssociations)
-nrow(genePhenotypePmidAssociations)
-nrow(variantDiseasePmidAssociations)
-nrow(variantPhenotypePmidAssociations)
+nrow(geneDiseaseAssociationsPmid)
+nrow(geneGroupAssociationsPmid)
+nrow(genePhenotypeAssociationsPmid)
+nrow(geneAssociationsPmid)
+
+nrow(variantDiseaseAssociationsPmid)
+nrow(variantGroupAssociationsPmid)
+nrow(variantPhenotypeAssociationsPmid)
+nrow(variantAssociationsPmid)
 
 ######## 
 ######## Shows the possible disease types.
 ########
-unique(geneDiseasePmidAssociations$diseaseType)
-unique(variantDiseasePmidAssociations$diseaseType)
+unique(geneAssociationsPmid$diseaseType)
+unique(variantAssociationsPmid$diseaseType)
 
 ######## 
 ######## Shows number of unique genes for the associations.
 ########
-( uniqueDiseaseGenes <- length(unique(geneDiseaseAssociations$geneId)) )
-( uniquePhenotypeGenes <- length(unique(genePhenotypeAssociations$geneId)) )
+dataToPlot <- c(all=length(unique(geneAssociationsPmid$geneId)),
+                disease=length(unique(geneDiseaseAssociationsPmid$geneId)),
+                group=length(unique(geneGroupAssociationsPmid$geneId)),
+                phenotype=length(unique(genePhenotypeAssociationsPmid$geneId)))
 
-ylimTop <- ceiling(uniqueDiseaseGenes/1000)
+ylimTop <- ceiling(max(dataToPlot/1000))
 postscript(paste0(imgExportDir, 'unique_genes.eps'), width=5, height=5)
-barplot(c(uniqueDiseaseGenes, uniquePhenotypeGenes)/1000, ylim=c(0,ylimTop),
-        names.arg=c('any association', 'phenotype association'),
-        las=1, space=0, ylab='number of unique genes (per thousand)', col="steelblue4", axes=F)
-axis(2, at=0:ylimTop, labels=F)
-axis(2, las=1, tick=F, at=seq(0, ylimTop, 2))
+barplot(dataToPlot/1000, ylim=c(0,20), las=1,
+        ylab='number of unique genes (per thousand)', col="steelblue4")
 dev.off()
 
-rm(uniqueDiseaseGenes, uniquePhenotypeGenes, ylimTop)
+rm(dataToPlot, ylimTop)
 
 ######## 
 ######## Plots the number of non-NA and NA associations per source.
 ########
 postscript(paste0(imgExportDir, 'pubmed_count_per_source_all.eps'), width=7, height=4)
-plotPmids('', countsPerSource)
-dev.off()
-
-postscript(paste0(imgExportDir, 'pubmed_count_per_source_phenotype.eps'), width=7, height=4)
-plotPmids('', countsPerSource.phenotype)
+plotPmids('', geneAssociationsSourceCounts)
 dev.off()
 
 ######## 
 ######## Plotting the total number of phenotype gene-disease associations per source/level.
 ######## 
-# Calculate number of associations per level.
-countsPerLevel <- ddply(countsPerSource, "level", numcolwise(sum))
-countsPerLevel.phenotype <- ddply(countsPerSource.phenotype, "level", numcolwise(sum))
-
-# Merges the sources that have less than 1000 associations.
-MergedCountsPerSource <- mergeSourcesWithLowCounts(countsPerSource, 20000)
-MergedCountsPerSource.phenotype <- mergeSourcesWithLowCounts(countsPerSource.phenotype, 200)
-
-# Sort the sources on level.
-MergedCountsPerSource <- arrange(MergedCountsPerSource, level)
-MergedCountsPerSource.phenotype <- arrange(MergedCountsPerSource.phenotype, level)
-
-# Generates plots.
 postscript(paste0(imgExportDir, 'gene_associations.eps'), width=8, height=4.5)
 plotAssociationsPerSourceAndLevel('',
-                                  MergedCountsPerSource, countsPerLevel,
+                                  # Counts per source (sorted and sources with <2000 are merged).
+                                  arrange(mergeSourcesWithLowCounts(geneAssociationsSourceCounts, 20000), level),
+                                  # Counts per level.
+                                  ddply(geneAssociationsSourceCounts, "level", numcolwise(sum)),
                                   outerRadius=c(0.9, 0.84, 0.76, 0.68, 0.8, 0.7, 0.79),
                                   innerRadius=c(0.35,0.25,0.15),
                                   outerAngles=c(3,4,6),
@@ -348,9 +358,34 @@ plotAssociationsPerSourceAndLevel('',
                                   innerAngleAdjust=-0.08)
 dev.off()
 
+postscript(paste0(imgExportDir, 'gene_disease_associations.eps'), width=8, height=4.5)
+plotAssociationsPerSourceAndLevel('',
+                                  # Counts per source (sorted and sources with <2000 are merged).
+                                  arrange(mergeSourcesWithLowCounts(geneDiseaseAssociationsSourceCounts, 20000), level),
+                                  # Counts per level.
+                                  ddply(geneDiseaseAssociationsSourceCounts, "level", numcolwise(sum)),
+                                  outerRadius=c(0.9, 0.8, 0.7, 0.6, 0.8, 0.8, 0.6),
+                                  innerRadius=c(0.35,0.25,0.15),
+                                  outerAngles=c(3,4),
+                                  outerAngleAdjust=c(-0.07,0.02))
+dev.off()
+
+postscript(paste0(imgExportDir, 'gene_group_associations.eps'), width=8, height=4.5)
+plotAssociationsPerSourceAndLevel('',
+                                  # Counts per source (sorted and sources with <2000 are merged).
+                                  arrange(mergeSourcesWithLowCounts(geneGroupAssociationsSourceCounts, 5000), level),
+                                  # Counts per level.
+                                  ddply(geneGroupAssociationsSourceCounts, "level", numcolwise(sum)),
+                                  outerRadius=c(0.86, 0.78, 0.68, 0.7, 0.7, 0.8),
+                                  innerRadius=c(0.35,0.25,0.15))
+dev.off()
+
 postscript(paste0(imgExportDir, 'gene_phenotype_associations.eps'), width=8, height=4.5)
 plotAssociationsPerSourceAndLevel('',
-                                  MergedCountsPerSource.phenotype, countsPerLevel.phenotype,
+                                  # Counts per source (sorted and sources with <2000 are merged).
+                                  arrange(mergeSourcesWithLowCounts(genePhenotypeAssociationsSourceCounts, 200), level),
+                                  # Counts per level.
+                                  ddply(genePhenotypeAssociationsSourceCounts, "level", numcolwise(sum)),
                                   outerRadius=c(0.9, 0.65, 0.85, 0.68, 0.55, 0.7, 0.75, 0.75),
                                   innerRadius=c(0.2,0.3,0.15),
                                   outerAngles=c(3,4,5),
@@ -360,13 +395,13 @@ dev.off()
 ######## 
 ######## Plots the number of associations per unique gene-disease combination.
 ########
-associationCounts <- tabulate(geneDiseaseAssociations$nAssociations)
+associationCounts <- tabulate(geneAssociations$nAssociations)
 
 # If no 'BEFREE=' present, resulting output cannot be cast to an integer.
 # This means each NA is gene-disease combination WITHOUT a befree association.
-befreeAssociationCounts <- as.integer(gsub(";.*", "", gsub(".*BEFREE=", "", geneDiseaseAssociations$sources)))
+befreeAssociationCounts <- as.integer(gsub(";.*", "", gsub(".*BEFREE=", "", geneAssociations$sources)))
 befreeAssociationCounts[which(is.na(befreeAssociationCounts))] <- 0 # Sets NAs to 0
-associationCountsWithoutBefree <- tabulate(geneDiseaseAssociations$nAssociations - befreeAssociationCounts)
+associationCountsWithoutBefree <- tabulate(geneAssociations$nAssociations - befreeAssociationCounts)
 
 barColors <- c('steelblue4', 'slategray2')
 
