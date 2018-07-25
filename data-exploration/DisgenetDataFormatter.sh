@@ -17,6 +17,8 @@ function main {
 	digestCommandLine $@
 	echo "Generating file containing all associations..."
 	digestFile $OUTPUT_FILE_ALL $".*"
+	echo "Generating file containing only disease associations..."
+	digestFile $OUTPUT_FILE_DISEASE $"^disease"
 	echo "Generating file containing only phenotype associations..."
 	digestFile $OUTPUT_FILE_PHENOTYPE $"^phenotype$"
 	echo "Done."
@@ -60,7 +62,8 @@ function digestCommandLine {
 	if [ ! -f "$INPUT_FILE" ]; then errcho "The file \"all_gene_disease_pmid_associations.tsv.gz\" could not be found in the given directory.\n\n$USAGE"; exit 1; fi
 
 	# Sets output files.
-	OUTPUT_FILE_ALL=$DIR/complete_gene_disease_associations.tsv
+	OUTPUT_FILE_ALL=$DIR/complete_gene_associations.tsv
+	OUTPUT_FILE_DISEASE=$DIR/complete_gene_disease_associations.tsv
 	OUTPUT_FILE_PHENOTYPE=$DIR/complete_gene_phenotype_associations.tsv
 }
 
