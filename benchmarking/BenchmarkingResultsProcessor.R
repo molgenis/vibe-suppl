@@ -335,7 +335,8 @@ hitPositionsScatterplot <- function(data, file, colors, xAxisFreq, yAxisFreq, xl
   yAxisMax <- ceiling(max(data[,2], na.rm=T)/yAxisFreq)*yAxisFreq
 
   # Plot total genes against found position.
-  postscript(file, width=8, height=6)
+  postscript(file, width=10, height=6)
+  par(mar=c(4.1,4.1,1,1))
 
   plot(1, las=1, type="n", bty="u",
        xlab=xlab,
@@ -410,22 +411,6 @@ colnames(positionResults.vibe) <- sapply(sapply(colnames(positionResults.vibe),
 
 # Calculate absolute tool rankings.
 vibeAlgorithmsRankingCounts <- calculateRankingCounts(positionResults.vibe, calculateRankings(positionResults.vibe))
-
-
-
-###
-### Plotting vibe-only figures.
-###
-
-toolValuesBoxPlot(positionResults.vibe,
-                  paste0(imgExportDir, 'benchmarking_gene_position_vibe_absolute.eps'),
-                  1, 500, 500,
-                  "position of relevant genes among different vibe sorting algorithms",
-                  "position")
-
-toolRankingBarplot(t(vibeAlgorithmsRankingCounts),
-                   paste0(imgExportDir, 'benchmarking_vibe_algorithms_ranking.eps'),
-                   "gene position ranked among the tools", c(0.5,-80))
 
 
 
@@ -521,7 +506,23 @@ apply(toolRankingCounts, 1, sum)
 
 
 ###
-### Plotting figures.
+### Plotting vibe-only figures.
+###
+
+toolValuesBoxPlot(positionResults.vibe,
+                  paste0(imgExportDir, 'benchmarking_gene_position_vibe_absolute.eps'),
+                  1, 500, 500,
+                  "",
+                  "position")
+
+toolRankingBarplot(t(vibeAlgorithmsRankingCounts),
+                   paste0(imgExportDir, 'benchmarking_vibe_algorithms_ranking.eps'),
+                   "", c(0.5,-80))
+
+
+
+###
+### Plotting tool-comparison figures.
 ###
 
 # Generics.
@@ -531,21 +532,21 @@ toolColors <- brewer.pal(ncol(positionResults), 'Set2')
 toolValuesBoxPlot(log10(positionResults),
                   paste0(imgExportDir, 'benchmarking_gene_position_absolute.eps'),
                   0, 1, 0.5,
-                  "position of relevant genes among different tools",
+                  "",
                   "position (log10)")
 
 # Boxplot comparing number of suggested genes found.
 toolValuesBoxPlot(log10(totalResults),
                   paste0(imgExportDir, 'benchmarking_gene_position_total_hits.eps'),
                   0, 1, 0.5,
-                  "the number of output genes among different tools",
+                  "",
                   "number of genes (log10)")
 
 # Boxplot comparing relative positions of genes (absolute position / number of suggested genes found).
 toolValuesBoxPlot(relativePositionResults,
                   paste0(imgExportDir, 'benchmarking_gene_position_relative.eps'),
                   0.0, 0.2, 0.05,
-                  "relative position of relevant genes among different tools",
+                  "",
                   "relative position")
 
 # Barplot showing the tool rankings.
@@ -589,13 +590,12 @@ dataYMax <- ceiling(max(apply(dataToPlot, 2, sum))/100)*100+2
 
 # Plot absolute phenotype frequencies grouped by best ranking tool.
 postscript(paste0(imgExportDir, 'benchmarking_first_rank_phenotype_frequencies.eps'), width=10, height=6)
-par(mar=c(11,4,4,0))
 barplot(dataToPlot, xaxt='n',yaxt='n', space=0, ylim=c(0,dataYMax))
 abline(h=seq(0, dataYMax, 5), col="gray92")
 abline(h=seq(0, dataYMax, 20), col="gray72")
 barplot(dataToPlot,
         col=toolColors, las=2, cex.names=0.5, space=0, ylim=c(0,dataYMax),
-        main="input phenotype frequencies when a tool ranked first in finding the gene\n(total frequency > 4)", # excludes input phenotypes with only NA
+        main="", # excludes input phenotypes with only NA
         ylab="phenotype input frequency", add=TRUE)
 legend(0,98, colnames(phenotypeCountsWhenToolRankedFirst), bg="white",
        fill=toolColors)
@@ -606,16 +606,12 @@ postscript(paste0(imgExportDir, 'benchmarking_first_rank_phenotype_frequencies_r
 par(mar=c(11,4,4,6.5))
 barplot(prop.table(dataToPlot, 2),
         col=toolColors, las=2, cex.names=0.5, space=0, border="white",
-        main="relative input phenotype frequencies when a tool ranked first in finding the gene\n(only phenotypes with total frequency > 4)", # excludes input phenotypes with only NA
+        main="", # excludes input phenotypes with only NA
         ylab="phenotype input frequency")
 par(xpd=TRUE) # no clipping for drawing outside plot
 legend(100,1, colnames(phenotypeCountsWhenToolRankedFirst),
        fill=toolColors)
 dev.off()
-
-rm(dataToPlot)
-par(oldPar)
-
 
 # Data transformation for upcoming plots.
 dataToPlot <- data.frame(hits=unlist(totalResults),
@@ -639,4 +635,18 @@ hitPositionsScatterplot(dataToPlot,
                         1, 1, 
                         "total hits (log10)", "absolute position (log10)")
 
-rm(dataToPlot)
+# Plots vibe against Amelie.
+dataToPlot <- data.frame(vibe=log10(positionResults$vibe),
+                         amelie=log10(positionResults$amelie))
+vibeOnly <- dataToPlot$vibe[is.na(dataToPlot$amelie)]
+amelieOnly <- dataToPlot$amelie[is.na(dataToPlot$vibe)]
+maxValue <- max(dataToPlot, na.rm=TRUE)
+
+postscript(paste0(imgExportDir, 'benchmark_positions_amelie_vibe.eps'), width=6, height=6)
+plot(dataToPlot, las=1, pch=20,
+     xlim=c(0,maxValue), ylim=c(0,maxValue))
+abline(0,1, col="red")
+par(xpd=TRUE) # no clipping for drawing outside plot
+points(vibeOnly, rep(maxValue + 0.3, length(vibeOnly)), pch=20)
+points(rep(maxValue + 0.3, length(amelieOnly)), amelieOnly, pch=20)
+dev.off()
