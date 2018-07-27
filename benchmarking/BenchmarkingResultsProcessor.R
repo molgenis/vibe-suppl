@@ -707,7 +707,7 @@ plotToolComaprison(dataToPlot,
 # Note that the plot uses the fraction of genes (instead of absolute numbers).
 dataToPlot <- genesFoundWithinCutoff / nrow(relativePositionResults)
 
-postscript(paste0(imgExportDir, 'roc_tools_genes_for_cutoffs.eps'), width=10, height=6)
+postscript(paste0(imgExportDir, 'found_genes_for_cutoffs.eps'), width=10, height=6)
 plot(1, type="n", las=1, xlim=c(0,1), ylim=c(0,1),
      xlab="relative cutoff within total hits",
      ylab="fraction of genes found within cutoff")
