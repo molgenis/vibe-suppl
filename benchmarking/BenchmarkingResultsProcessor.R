@@ -352,6 +352,45 @@ hitPositionsScatterplot <- function(data, file, colors, xAxisFreq, yAxisFreq, xl
   dev.off()
 }
 
+########
+# Name:
+# plotToolComaprison
+#
+# Description:
+#
+#
+# Input:
+#
+#
+# Output:
+#
+########
+plotToolComaprison <- function(data, file, xyMax, xLab, yLab, xyMin=0, naHitsAdjust=0.3) {
+  col1ValuesWithNaCol2 <- data[is.na(data[,2]),1]
+  col2ValuesWithNaCol1 <- data[is.na(data[,1]),2]
+  
+  postscript(file, width=6, height=6)
+  plot(data[,1], data[,2], las=1, pch=20,
+       xlim=c(xyMin,xyMax), ylim=c(xyMin,xyMax), xlab=xLab, ylab=yLab,
+       # Makes sure grid & legend are drawn before the data.
+       panel.first=c(grid(col="gray92", lty=1),
+                     legend("topleft",
+                            c("data-point", "average", "Y=X"),
+                            pch=c(20, 20, NA),
+                            lty=c(NA, NA, 1),
+                            col=c("black", "orange", "red"),
+                            bg="white")))
+  abline(0,1, col="red")
+  par(xpd=TRUE) # no clipping for drawing outside plot
+  points(col1ValuesWithNaCol2,
+         rep(xyMax + naHitsAdjust, length(col1ValuesWithNaCol2)), pch=20)
+  points(rep(xyMax + naHitsAdjust, length(col2ValuesWithNaCol1)),
+         col2ValuesWithNaCol1, pch=20)
+  points(mean(data[,1], na.rm=TRUE), 
+         mean(data[,2], na.rm=TRUE), col="orange", pch=20)
+  dev.off()
+}
+
 
 
 
@@ -484,6 +523,15 @@ rm(foundCounts)
 
 # The frequencies of the input phenotypes for which a tool ranked first (no all NA).
 phenotypeTotals <- apply(phenotypeCountsWhenToolRankedFirst, 1, sum)
+
+# Calculates how many of the genes are found when only looking within specific
+# cutoffs of the total number of hits available.
+cutoffRanges <- seq(0.0001, 1, 0.0001) # how specific looking for cutoffs
+genesFoundWithinCutoff <- apply(relativePositionResults, 2, function(toolRelativeScores, range=cutoffRanges) {
+  sapply(range, function(cutoff, scores=toolRelativeScores) {
+    length(which(scores < cutoff))
+  })
+})
 
 
 
@@ -635,18 +683,37 @@ hitPositionsScatterplot(dataToPlot,
                         1, 1, 
                         "total hits (log10)", "absolute position (log10)")
 
-# Plots vibe against Amelie.
-dataToPlot <- data.frame(vibe=log10(positionResults$vibe),
-                         amelie=log10(positionResults$amelie))
-vibeOnly <- dataToPlot$vibe[is.na(dataToPlot$amelie)]
-amelieOnly <- dataToPlot$amelie[is.na(dataToPlot$vibe)]
-maxValue <- max(dataToPlot, na.rm=TRUE)
+# Plots vibe against amelie (absolute).
+dataToPlot <- log10(data.frame(vibe=positionResults$vibe,
+                               amelie=positionResults$amelie))
+plotToolComaprison(dataToPlot,
+                   paste0(imgExportDir, 'benchmark_positions_amelie_vibe_absolute.eps'),
+                   max(dataToPlot, na.rm=TRUE),
+                   "absolute position in vibe (log10)",
+                   "absolute position in amelie (log10)")
 
-postscript(paste0(imgExportDir, 'benchmark_positions_amelie_vibe.eps'), width=6, height=6)
-plot(dataToPlot, las=1, pch=20,
-     xlim=c(0,maxValue), ylim=c(0,maxValue))
-abline(0,1, col="red")
-par(xpd=TRUE) # no clipping for drawing outside plot
-points(vibeOnly, rep(maxValue + 0.3, length(vibeOnly)), pch=20)
-points(rep(maxValue + 0.3, length(amelieOnly)), amelieOnly, pch=20)
+# Plots vibe against amelie (relative).
+dataToPlot <- log10(data.frame(vibe=relativePositionResults$vibe,
+                         amelie=relativePositionResults$amelie))
+plotToolComaprison(dataToPlot,
+                   paste0(imgExportDir, 'benchmark_positions_amelie_vibe_relative.eps'),
+                   xyMin=floor(min(dataToPlot, na.rm=TRUE)),
+                   xyMax=ceiling(max(dataToPlot, na.rm=TRUE)),
+                   "relative position in vibe (log10)",
+                   "relative position in amelie (log10)")
+
+
+# Plots how often genes were found using cutoffs of total available hits.
+# Note that the plot uses the fraction of genes (instead of absolute numbers).
+dataToPlot <- genesFoundWithinCutoff / nrow(relativePositionResults)
+
+postscript(paste0(imgExportDir, 'roc_tools_genes_for_cutoffs.eps'), width=10, height=6)
+plot(1, type="n", las=1, xlim=c(0,1), ylim=c(0,1),
+     xlab="relative cutoff within total hits",
+     ylab="fraction of genes found within cutoff")
+abline(0,1)
+for(x in 1:ncol(dataToPlot)) {
+  lines(cutoffRanges, dataToPlot[,x], col=toolColors[x])
+}
+legend("bottomright",1, colnames(dataToPlot), fill=toolColors)
 dev.off()
