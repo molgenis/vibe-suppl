@@ -318,10 +318,21 @@ benchmarkQuintupleVenn <- function(data, outside, file, colors) {
 # hitPositionsScatterplot
 #
 # Description:
-#
+# Creates a scatterplot based on the data. A vertical line (Y=X) is also included.
 #
 # Input:
-#
+# data - The data to be plott. Should contain 3 columns: the first column should
+#        contain the x-axis values, the second column the y-axis values and the
+#        third column should contain the different groups (are assigned
+#        different colors).
+# file - Full path (including the ".eps" extension) to the location where the
+#        plot should be stored on local storage.
+# colors - The colors to be used within the plot (each group gets a different
+#          color)
+# xAxisFreq - The frequency of x-axis lines.
+# yAxisFreq - The frequency of y-axis lines.
+# xlab - The x-axis label.
+# ylab - The y-axis label.
 #
 # Output:
 #
@@ -357,21 +368,32 @@ hitPositionsScatterplot <- function(data, file, colors, xAxisFreq, yAxisFreq, xl
 # plotToolComaprison
 #
 # Description:
-#
+# Plots 2 tools against each other on how they compare for each row from the
+# input dataframe.
 #
 # Input:
-#
+# data - The data to be plotted. Should contain 2 columns containing the different
+#        tools that are compared.
+# file - Full path (including the ".eps" extension) to the location where the
+#        plot should be stored on local storage.
+# xyMax - The plot max of both the x-axis and y-axis.
+# xlab - The x-axis label.
+# ylab - The y-axis label.
+# xyMin - The plot min of both the x-axis and y-axis. DEFAULT=0
+# naHitsAdjust - Axis adjustment for plotting values outside the plot
+#                (indicating only 1 of the tools has a result while the other
+#                has an NA there). DEFAULT=0.3
 #
 # Output:
 #
 ########
-plotToolComaprison <- function(data, file, xyMax, xLab, yLab, xyMin=0, naHitsAdjust=0.3) {
+plotToolComaprison <- function(data, file, xyMax, xlab, ylab, xyMin=0, naHitsAdjust=0.3) {
   col1ValuesWithNaCol2 <- data[is.na(data[,2]),1]
   col2ValuesWithNaCol1 <- data[is.na(data[,1]),2]
   
   postscript(file, width=6, height=6)
   plot(data[,1], data[,2], las=1, pch=20,
-       xlim=c(xyMin,xyMax), ylim=c(xyMin,xyMax), xlab=xLab, ylab=yLab,
+       xlim=c(xyMin,xyMax), ylim=c(xyMin,xyMax), xlab=xlab, ylab=ylab,
        # Makes sure grid & legend are drawn before the data.
        panel.first=c(grid(col="gray92", lty=1),
                      legend("topleft",
