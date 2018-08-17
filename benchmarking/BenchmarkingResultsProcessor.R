@@ -413,6 +413,50 @@ plotToolComaprison <- function(data, file, xyMax, xlab, ylab, xyMin=0, naHitsAdj
   dev.off()
 }
 
+########
+# Name:
+# plotMatchesFoundWihinRangeCutoff
+#
+# Description:
+# Plots how many hits were found within a defined cutoff. The data should
+# contain the number/fraction of found hits within the cutoff defined by the
+# row names.
+#
+# Input:
+# data - The data to be plotted. Should contain a column per tool to plot and
+#        row names indicating the x-axis values.
+# file - Full path (including the ".eps" extension) to the location where the
+#        plot should be stored on local storage.
+# xlab - The x-axis label.
+# ylab - The y-axis label.
+# addAbline - Whether abline(0,1) should be added to plot. DEFAULT=TRUE
+#
+# Output:
+#
+########
+plotMatchesFoundWihinRangeCutoff <- function(data, file, xlab, ylab, colors, addAbline=TRUE) {
+  highestUsedCutoffWithinData <- as.numeric(rownames(data)[nrow(data)])
+  
+  postscript(file, width=10, height=6)
+  # Generates empty plot to use.
+  plot(1, type="n", las=1, xlim=c(0, highestUsedCutoffWithinData), ylim=c(0,1),
+       xlab=xlab,
+       ylab=ylab)
+  
+  # Adds abline if requested.
+  if(addAbline) {abline(0,1)}
+  
+  # Adds data lines.
+  for(x in 1:ncol(data)) {
+    lines(rownames(data), data[,x], col=colors[x])
+  }
+  
+  # Adds legend.
+  legend("bottomright",1, colnames(data), fill=colors)
+  
+  dev.off()
+}
+
 
 
 
@@ -547,13 +591,42 @@ rm(foundCounts)
 phenotypeTotals <- apply(phenotypeCountsWhenToolRankedFirst, 1, sum)
 
 # Calculates how many of the genes are found when only looking within specific
-# cutoffs of the total number of hits available.
+# absolute cutoffs of the total number of hits available.
+highestPossibleResultForTool <- apply(totalResults, 2, max)
+cutoffRanges <- seq(1, max(highestPossibleResultForTool), 1) # how specific looking for cutoffs
+genesFoundWithinAbsoluteCutoff <- apply(positionResults, 2, function(toolAbsoluteScores, range=cutoffRanges) {
+  sapply(range, function(cutoff, scores=toolAbsoluteScores) {
+    length(which(scores < cutoff))
+  })
+})
+rownames(genesFoundWithinAbsoluteCutoff) <- cutoffRanges
+
+# Replaces values with NA for positions if higher than highest available
+# totalResult for that tool.
+for(x in names(highestPossibleResultForTool)) {
+  if(highestPossibleResultForTool[x] < nrow(genesFoundWithinAbsoluteCutoff)) {
+    genesFoundWithinAbsoluteCutoff[(highestPossibleResultForTool[x]+1):nrow(genesFoundWithinAbsoluteCutoff),x] <- NA
+  }
+}
+
+# Calculates how many of the genes are found when only looking within specific
+# relative cutoffs of the total number of hits available.
 cutoffRanges <- seq(0.0001, 1, 0.0001) # how specific looking for cutoffs
-genesFoundWithinCutoff <- apply(relativePositionResults, 2, function(toolRelativeScores, range=cutoffRanges) {
+genesFoundWithinRelativeCutoff <- apply(relativePositionResults, 2, function(toolRelativeScores, range=cutoffRanges) {
   sapply(range, function(cutoff, scores=toolRelativeScores) {
     length(which(scores < cutoff))
   })
 })
+rownames(genesFoundWithinRelativeCutoff) <- cutoffRanges
+
+# Converts above two into percentage of found hits compared to total hits.
+genePercentageFoundWithinAbsoluteCutoff <- genesFoundWithinAbsoluteCutoff / nrow(positionResults)
+genePercentageFoundWithinRelativeCutoff <- genesFoundWithinRelativeCutoff / nrow(relativePositionResults)
+
+# Removes variable so that it cannot accidentally be used later on.
+rm(cutoffRanges)
+
+
 
 
 
@@ -724,18 +797,20 @@ plotToolComaprison(dataToPlot,
                    "relative position in vibe (log10)",
                    "relative position in amelie (log10)")
 
-
 # Plots how often genes were found using cutoffs of total available hits.
-# Note that the plot uses the fraction of genes (instead of absolute numbers).
-dataToPlot <- genesFoundWithinCutoff / nrow(relativePositionResults)
+# Shows how many hits were found when looking at a specific absolute cutoff
+# max positions from all genes found.
+plotMatchesFoundWihinRangeCutoff(genePercentageFoundWithinAbsoluteCutoff[1:2000,],
+                                 paste0(imgExportDir, 'found_genes_for_absolute_cutoffs.eps'),
+                                 "absolute cutoff within total hits",
+                                 "fraction of genes found within cutoff",
+                                 toolColors,
+                                 addAbline=FALSE)
 
-postscript(paste0(imgExportDir, 'found_genes_for_cutoffs.eps'), width=10, height=6)
-plot(1, type="n", las=1, xlim=c(0,1), ylim=c(0,1),
-     xlab="relative cutoff within total hits",
-     ylab="fraction of genes found within cutoff")
-abline(0,1)
-for(x in 1:ncol(dataToPlot)) {
-  lines(cutoffRanges, dataToPlot[,x], col=toolColors[x])
-}
-legend("bottomright",1, colnames(dataToPlot), fill=toolColors)
-dev.off()
+# Shows how many hits were found when looking at a specific cutoff fractions
+# from all genes found.
+plotMatchesFoundWihinRangeCutoff(genePercentageFoundWithinRelativeCutoff,
+                                 paste0(imgExportDir, 'found_genes_for_relative_cutoffs.eps'),
+                                 "relative cutoff within total hits",
+                                 "fraction of genes found within cutoff",
+                                 toolColors)
