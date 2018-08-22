@@ -223,12 +223,14 @@ calculateRankingCounts <- function(data, rankingResults) {
 # yAxisAblineFreq - The frequency of the vertical lines in the plot.
 # main - The plot title.
 # ylab - The y-axis label.
+# parMar - the margin of the graphical parameters. DEFAULT=c(4.5,4.5,0.5,0.5)
 #
 # Output:
 #
 ########
-toolValuesBoxPlot <- function(data, file, firstYValue, yAxisFreq, yAxisAblineFreq, main, ylab) {
+toolValuesBoxPlot <- function(data, file, firstYValue, yAxisFreq, yAxisAblineFreq, main, ylab, parMar=c(4.5,4.5,0.5,0.5)) {
   postscript(file, width=7, height=8)
+  par(mar=parMar)
   
   yAxisMax <- ceiling(max(data, na.rm=T)/yAxisFreq)*yAxisFreq
   boxplot(data, ylim=c(firstYValue,yAxisMax), xaxt='n',yaxt='n', pch="")
@@ -258,16 +260,18 @@ toolValuesBoxPlot <- function(data, file, firstYValue, yAxisFreq, yAxisAblineFre
 #             The first item from the vector will be used for the x-axis
 #             positioning. The second item from the vector will be used for the
 #             y-axis positioning.
+# parMar - the margin of the graphical parameters. DEFAULT=c(4.5,4.5,0.5,0.5)
 #
 # Output:
 #
 ########
-toolRankingBarplot <- function(data, file, main, legendPos) {
+toolRankingBarplot <- function(data, file, main, legendPos, parMar=c(4.5,4.5,0.5,0.5)) {
   GreenToRedColors <- rev(brewer.pal(nrow(data), 'RdYlGn'))
-  postscript(file, width=7, height=4)
+  postscript(file, width=7, height=8)
+  par(mar=parMar)
   
   barplot(data, col=GreenToRedColors, las=1,
-          main=main)
+          main=main, ylab="sets")
   par(xpd=TRUE) # no clipping for drawing outside plot
   legend(legendPos[1], legendPos[2], rownames(data),
          fill=GreenToRedColors, ncol=nrow(data))
@@ -333,11 +337,12 @@ benchmarkQuintupleVenn <- function(data, outside, file, colors) {
 # yAxisFreq - The frequency of y-axis lines.
 # xlab - The x-axis label.
 # ylab - The y-axis label.
+# parMar - the margin of the graphical parameters. DEFAULT=c(4.5,4.5,0.5,0.5)
 #
 # Output:
 #
 ########
-hitPositionsScatterplot <- function(data, file, colors, xAxisFreq, yAxisFreq, xlab, ylab) {
+hitPositionsScatterplot <- function(data, file, colors, xAxisFreq, yAxisFreq, xlab, ylab, parMar=c(4.5,4.5,0.5,0.5)) {
   # Renames colnames for universal usage.
   colnames(data) <- c("x", "y", "group")
 
@@ -347,7 +352,7 @@ hitPositionsScatterplot <- function(data, file, colors, xAxisFreq, yAxisFreq, xl
 
   # Plot total genes against found position.
   postscript(file, width=10, height=6)
-  par(mar=c(4.1,4.1,1,1))
+  par(mar=parMar)
 
   plot(1, las=1, type="n", bty="u",
        xlab=xlab,
@@ -383,21 +388,23 @@ hitPositionsScatterplot <- function(data, file, colors, xAxisFreq, yAxisFreq, xl
 # naHitsAdjust - Axis adjustment for plotting values outside the plot
 #                (indicating only 1 of the tools has a result while the other
 #                has an NA there). DEFAULT=0.3
+# parMar - the margin of the graphical parameters. DEFAULT=c(4.5,4.5,1.5,1.5)
 #
 # Output:
 #
 ########
-plotToolComaprison <- function(data, file, xyMax, xlab, ylab, xyMin=0, naHitsAdjust=0.3) {
+plotToolComaprison <- function(data, file, xyMax, xlab, ylab, xyMin=0, naHitsAdjust=0.3, parMar=c(4.5,4.5,1.5,1.5)) {
   col1ValuesWithNaCol2 <- data[is.na(data[,2]),1]
   col2ValuesWithNaCol1 <- data[is.na(data[,1]),2]
   
   postscript(file, width=6, height=6)
+  par(mar=parMar)
   plot(data[,1], data[,2], las=1, pch=20,
        xlim=c(xyMin,xyMax), ylim=c(xyMin,xyMax), xlab=xlab, ylab=ylab,
        # Makes sure grid & legend are drawn before the data.
        panel.first=c(grid(col="gray92", lty=1),
                      legend("topleft",
-                            c("data-point", "average", "Y=X"),
+                            c("data-point", "mean", "Y=X"),
                             pch=c(20, 20, NA),
                             lty=c(NA, NA, 1),
                             col=c("black", "orange", "red"),
@@ -430,14 +437,16 @@ plotToolComaprison <- function(data, file, xyMax, xlab, ylab, xyMin=0, naHitsAdj
 # xlab - The x-axis label.
 # ylab - The y-axis label.
 # addAbline - Whether abline(0,1) should be added to plot. DEFAULT=TRUE
+# parMar - the margin of the graphical parameters. DEFAULT=c(4.5,4.5,0.5,0.5)
 #
 # Output:
 #
 ########
-plotMatchesFoundWihinRangeCutoff <- function(data, file, xlab, ylab, colors, addAbline=TRUE) {
+plotMatchesFoundWihinRangeCutoff <- function(data, file, xlab, ylab, colors, addAbline=TRUE, parMar=c(4.5,4.5,0.5,0.5)) {
   highestUsedCutoffWithinData <- as.numeric(rownames(data)[nrow(data)])
   
-  postscript(file, width=10, height=6)
+  postscript(file, width=10, height=5)
+  par(mar=parMar)
   # Generates empty plot to use.
   plot(1, type="n", las=1, xlim=c(0, highestUsedCutoffWithinData), ylim=c(0,1),
        xlab=xlab,
@@ -660,7 +669,7 @@ toolValuesBoxPlot(positionResults.vibe,
 
 toolRankingBarplot(t(vibeAlgorithmsRankingCounts),
                    paste0(imgExportDir, 'benchmarking_vibe_algorithms_ranking.eps'),
-                   "", c(0.5,-80))
+                   "", c(0.5,-23))
 
 
 
@@ -695,7 +704,7 @@ toolValuesBoxPlot(relativePositionResults,
 # Barplot showing the tool rankings.
 toolRankingBarplot(t(toolRankingCounts),
                    paste0(imgExportDir, 'benchmarking_tool_ranking.eps'),
-                   "gene position ranked among the tools", c(0,-80))
+                   "", c(0,-23))
 
 # Plot differences in whether the gene was found.
 benchmarkQuintupleVenn(apply(!is.na(positionResults), 2, which),
@@ -703,7 +712,13 @@ benchmarkQuintupleVenn(apply(!is.na(positionResults), 2, which),
                        paste0(imgExportDir, 'benchmarking_overlap_genes_found_absolute.eps'),
                        toolColors)
 
-# Plot differences in whether the gene was found within the first 100 positions.
+# Plot differences in whether the gene was found within the first 10000 positions.
+benchmarkQuintupleVenn(apply(positionResults <=10000, 2, which),
+                       sum(apply(positionResults > 10000, 1, all, na.rm=T)),
+                       paste0(imgExportDir, 'benchmarking_overlap_genes_found_absolute_max_10000.eps'),
+                       toolColors)
+
+# Plot differences in whether the gene was found within the first 1000 positions.
 benchmarkQuintupleVenn(apply(positionResults <=1000, 2, which),
                        sum(apply(positionResults > 1000, 1, all, na.rm=T)),
                        paste0(imgExportDir, 'benchmarking_overlap_genes_found_absolute_max_1000.eps'),
@@ -712,13 +727,13 @@ benchmarkQuintupleVenn(apply(positionResults <=1000, 2, which),
 # Plot differences in whether the gene was found within the first 100 positions.
 benchmarkQuintupleVenn(apply(positionResults <=100, 2, which),
                        sum(apply(positionResults > 100, 1, all, na.rm=T)),
-                       paste0(imgExportDir, 'benchmarking_overlap_genes_found_absolute_max_0100.eps'),
+                       paste0(imgExportDir, 'benchmarking_overlap_genes_found_absolute_max_100.eps'),
                        toolColors)
 
 # Plot differences in whether the gene was found within the first 20 positions.
 benchmarkQuintupleVenn(apply(positionResults <=20, 2, which),
                        sum(apply(positionResults > 20, 1, all, na.rm=T)),
-                       paste0(imgExportDir, 'benchmarking_overlap_genes_found_absolute_max_0020.eps'),
+                       paste0(imgExportDir, 'benchmarking_overlap_genes_found_absolute_max_20.eps'),
                        toolColors)
 
 # Plot differences in whether the gene was found within the first 20 positions.
@@ -733,6 +748,7 @@ dataYMax <- ceiling(max(apply(dataToPlot, 2, sum))/100)*100+2
 
 # Plot absolute phenotype frequencies grouped by best ranking tool.
 postscript(paste0(imgExportDir, 'benchmarking_first_rank_phenotype_frequencies.eps'), width=10, height=6)
+par(mar=c(11.0,4.5,0.5,0.5))
 barplot(dataToPlot, xaxt='n',yaxt='n', space=0, ylim=c(0,dataYMax))
 abline(h=seq(0, dataYMax, 5), col="gray92")
 abline(h=seq(0, dataYMax, 20), col="gray72")
@@ -746,7 +762,7 @@ dev.off()
 
 # Plot relative phenotype frequencies grouped by best ranking tool.
 postscript(paste0(imgExportDir, 'benchmarking_first_rank_phenotype_frequencies_relative.eps'), width=10, height=6)
-par(mar=c(11,4,4,6.5))
+par(mar=c(11.5,4.5,1.0,7.0))
 barplot(prop.table(dataToPlot, 2),
         col=toolColors, las=2, cex.names=0.5, space=0, border="white",
         main="", # excludes input phenotypes with only NA
