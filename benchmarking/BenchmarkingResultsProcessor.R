@@ -743,41 +743,33 @@ benchmarkQuintupleVenn(apply(relativePositionResults <=0.2, 2, which),
                        toolColors)
 
 # Data transformation for upcoming plots.
-dataToPlot <- t(phenotypeCountsWhenToolRankedFirst[which(phenotypeTotals > 4),])
+dataToPlot <- t(phenotypeCountsWhenToolRankedFirst[which(phenotypeTotals > 5),])
 dataYMax <- ceiling(max(apply(dataToPlot, 2, sum))/100)*100+2
 
 # Plot absolute phenotype frequencies grouped by best ranking tool.
-postscript(paste0(imgExportDir, 'benchmarking_first_rank_phenotype_frequencies.eps'), width=10, height=6)
-par(mar=c(11.0,4.5,0.5,0.5))
-barplot(dataToPlot, xaxt='n', yaxt='n', space=0, ylim=c(0,dataYMax))
-abline(h=seq(0, dataYMax, 5), col="gray92")
-abline(h=seq(0, dataYMax, 20), col="gray72")
-x <- barplot(dataToPlot, # excludes input phenotypes with only NA
-             col=toolColors, las=2, xaxt='n', cex.names=0.5, space=0, main="",
-             ylim=c(0,dataYMax), add=TRUE)
+postscript(paste0(imgExportDir, 'benchmarking_first_rank_phenotype_frequencies.eps'), width=7, height=8)
+par(mar=c(4.5,10.0,0.5,0.5))
+barplot(dataToPlot, xaxt='n', yaxt='n', space=0, xlim=c(0,dataYMax), horiz=TRUE)
+abline(v=seq(0, dataYMax, 5), col="gray92")
+abline(v=seq(0, dataYMax, 20), col="gray72")
+barplot(dataToPlot, # excludes input phenotypes with only NA
+        col=toolColors, las=1, cex.names=0.5, space=0, xlim=c(0,dataYMax),
+        main="", xlab="phenotype input frequency", add=TRUE, horiz=TRUE)
 par(xpd=TRUE) # no clipping for drawing outside plot
-text(x=-12, y=dataYMax/2, labels="phenotype input frequency", srt=-90) # ylab
-text(x=x-1.25, y=-2, labels=colnames(dataToPlot), # x-labels
-     srt = -90, pos=4, cex=0.5, xpd = TRUE)
-legend(0,98, colnames(phenotypeCountsWhenToolRankedFirst), bg="white",
+legend("topright", colnames(phenotypeCountsWhenToolRankedFirst), bg="white",
        fill=toolColors)
 dev.off()
-rm(x)
 
 # Plot relative phenotype frequencies grouped by best ranking tool.
-postscript(paste0(imgExportDir, 'benchmarking_first_rank_phenotype_frequencies_relative.eps'), width=10, height=6)
-par(mar=c(11.0,4.5,1.0,7.0))
-x <- barplot(prop.table(dataToPlot, 2), # excludes input phenotypes with only NA
-             col=toolColors, las=2, xaxt='n', cex.names=0.5, space=0, main="",
-             border="white")
+postscript(paste0(imgExportDir, 'benchmarking_first_rank_phenotype_frequencies_relative.eps'), width=7, height=8)
+par(mar=c(5.5,11.0,0.0,1.0))
+barplot(prop.table(dataToPlot, 2), # excludes input phenotypes with only NA
+        col=toolColors, las=1, cex.names=0.5, space=0, main="",
+        xlab="phenotype input frequency", border="white", horiz=TRUE)
 par(xpd=TRUE) # no clipping for drawing outside plot
-text(x=-13, y=0.5, labels="phenotype input frequency", srt=-90) # ylab
-text(x=x-1.25, y=-0.02, labels=colnames(dataToPlot), # x-labels
-     srt = -90, pos=4, cex=0.5)
-legend(100,1, colnames(phenotypeCountsWhenToolRankedFirst),
+legend(-0.38,-1, colnames(phenotypeCountsWhenToolRankedFirst),
        fill=toolColors)
 dev.off()
-rm(x)
 
 # Data transformation for upcoming plots.
 dataToPlot <- data.frame(hits=unlist(totalResults),
