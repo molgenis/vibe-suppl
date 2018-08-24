@@ -655,7 +655,16 @@ any(is.na(totalResults))
 # Check whether tool ranking return values indicating they are complete (and equal!).
 apply(toolRankingCounts, 1, sum)
 
+# Retrieves rows for which have an NA (except if only phenomizer has an NA).
+naExceptPhenomizerOnly <- positionResults[apply(positionResults, 1,
+                                                function(x) {
+                                                  any(is.na(x[c(1,2,4,5)]))
+                                                }),]
 
+# Combines previous data with the lovd and gene information for each row.
+naExceptPhenomizerOnly <- cbind(benchmarkData[rownames(naExceptPhenomizerOnly),
+                                              c("lovd", "gene")],
+                                naExceptPhenomizerOnly)
 
 ###
 ### Plotting vibe-only figures.
