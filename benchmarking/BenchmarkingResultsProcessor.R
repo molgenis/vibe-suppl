@@ -404,12 +404,13 @@ plotToolComaprison <- function(data, file, xyMax, xlab, ylab, xyMin=0, naHitsAdj
        # Makes sure grid & legend are drawn before the data.
        panel.first=c(grid(col="gray92", lty=1),
                      legend("topleft",
-                            c("data-point", "mean", "Y=X"),
-                            pch=c(20, 20, NA),
-                            lty=c(NA, NA, 1),
-                            col=c("black", "orange", "red"),
+                            c("data-point", "mean", "Y=X", "linear model"),
+                            pch=c(20, 20, NA, NA),
+                            lty=c(NA, NA, 1, 1),
+                            col=c("black", "orange", "red", "orange"),
                             bg="white")))
   abline(0,1, col="red")
+  abline(lm(data[,2]~data[,1]), col="orange")
   par(xpd=TRUE) # no clipping for drawing outside plot
   points(col1ValuesWithNaCol2,
          rep(xyMax + naHitsAdjust, length(col1ValuesWithNaCol2)), pch=20)
@@ -743,6 +744,12 @@ benchmarkQuintupleVenn(apply(positionResults <=100, 2, which),
 benchmarkQuintupleVenn(apply(positionResults <=20, 2, which),
                        sum(apply(positionResults > 20, 1, all, na.rm=T)),
                        paste0(imgExportDir, 'benchmarking_overlap_genes_found_absolute_max_20.eps'),
+                       toolColors)
+
+# Plot differences in whether the gene was found within the first 20 positions.
+benchmarkQuintupleVenn(apply(positionResults <=10, 2, which),
+                       sum(apply(positionResults > 10, 1, all, na.rm=T)),
+                       paste0(imgExportDir, 'benchmarking_overlap_genes_found_absolute_max_10.eps'),
                        toolColors)
 
 # Plot differences in whether the gene was found within the first 20 positions.
