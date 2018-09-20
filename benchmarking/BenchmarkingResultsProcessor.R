@@ -13,9 +13,6 @@
 ### Config     ###
 ##################
 
-# Quality indicator for pixel images (using image-specific width/height setting).
-pixelFactor=100
-
 # Directory storing script input:
 # - benchmark_data.tsv
 # - results/amelie.tsv
