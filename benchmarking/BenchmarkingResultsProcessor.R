@@ -3,8 +3,36 @@
 # BenchmarkingResultsProcessor.R
 #
 # Description:
+# Generates plots from the result data.
 # 
+# Important:
+# Be sure to adjust the items in the config section before running the script!
 ########
+
+##################
+### Config     ###
+##################
+
+# Quality indicator for pixel images (using image-specific width/height setting).
+pixelFactor=100
+
+# Directory storing script input:
+# - benchmark_data.tsv
+# - results/amelie.tsv
+# - results/gene_network.tsv
+# - results/phenomizer.tsv
+# - results/phenotips.tsv
+# - results/vibe_2018-07-06_gda_max.tsv
+# - results/vibe_2018-07-06_dsi.tsv
+# - results/vibe_2018-07-06_dpi.tsv
+baseDir <- '~/programming/projects/vibe/data/benchmarking/'
+
+# Directory to write the output images to.
+imgExportDir <- '~/Documents/afstuderen/verslag/img/'
+
+
+
+
 
 ##################
 ### Libraries  ###
@@ -26,6 +54,26 @@ library(viridis)
 ##################
 ### Functions  ###
 ##################
+
+########
+# Name:
+# initializeGraphicsDevice
+#
+# Description:
+# A simple wrapper for cairo_ps() that prepends the directory and appends the
+# file extension.
+#
+# Input:
+# fileName - Filename (excluding file extension) to be used for storage.
+# width	- The width of the device in inches. -> see ?cairo_ps()
+# height - The height of the device in inches. -> see ?cairo_ps()
+#
+# Output:
+#
+########
+initializeGraphicsDevice <- function(fileName, width, height) {
+  cairo_ps(paste0(imgExportDir, fileName, ".eps"), width=width, height=height)
+}
 
 ########
 # Name:
@@ -221,8 +269,7 @@ calculateRankingCounts <- function(data, rankingResults) {
 #
 # Input:
 # data - The dataframe to create a plot from.
-# file - Full path (including the ".eps" extension) to the location where the
-#        plot should be stored on local storage.
+# fileName - Filename (excluding file extension) to be used for storage.
 # firstYValue - The y-axis starting position.
 # yAxisFreq - The frequency for the y-axis labels.
 # yAxisAblineFreq - The frequency of the vertical lines in the plot.
@@ -233,8 +280,8 @@ calculateRankingCounts <- function(data, rankingResults) {
 # Output:
 #
 ########
-toolValuesBoxPlot <- function(data, file, firstYValue, yAxisFreq, yAxisAblineFreq, main, ylab, parMar=c(4.5,4.5,0.5,0.5)) {
-  postscript(file, width=7, height=8)
+toolValuesBoxPlot <- function(data, fileName, firstYValue, yAxisFreq, yAxisAblineFreq, main, ylab, parMar=c(4.5,4.5,0.5,0.5)) {
+  initializeGraphicsDevice(fileName, width=7, height=8)
   par(mar=parMar)
   
   yAxisMax <- ceiling(max(data, na.rm=T)/yAxisFreq)*yAxisFreq
@@ -259,8 +306,7 @@ toolValuesBoxPlot <- function(data, file, firstYValue, yAxisFreq, yAxisAblineFre
 # Input:
 # data - The data to be plotted (in general: the object generated from
 #        calculateRankingCounts() ).
-# file - Full path (including the ".eps" extension) to the location where the
-#        plot should be stored on local storage.
+# fileName - Filename (excluding file extension) to be used for storage.
 # legendPos - A vector with 2 positions used for placing the legend().
 #             The first item from the vector will be used for the x-axis
 #             positioning. The second item from the vector will be used for the
@@ -270,9 +316,9 @@ toolValuesBoxPlot <- function(data, file, firstYValue, yAxisFreq, yAxisAblineFre
 # Output:
 #
 ########
-toolRankingBarplot <- function(data, file, main, legendPos, parMar=c(4.5,4.5,0.5,0.5)) {
+toolRankingBarplot <- function(data, fileName, main, legendPos, parMar=c(4.5,4.5,0.5,0.5)) {
   GreenToRedColors <- rev(brewer.pal(nrow(data), 'RdYlGn'))
-  postscript(file, width=7, height=8)
+  initializeGraphicsDevice(fileName, width=7, height=8)
   par(mar=parMar)
   
   barplot(data, col=GreenToRedColors, las=1,
@@ -298,15 +344,14 @@ toolRankingBarplot <- function(data, file, main, legendPos, parMar=c(4.5,4.5,0.5
 #        corresponding to a separate circle in the Venn diagram (direct citation
 #        from venn.diagram() from the library VennDiagram).
 # outside - A number indicating how many hits were outside the venn diagram.
-# file - Full path (including the ".eps" extension) to the location where the
-#        plot should be stored on local storage.
+# fileName - Filename (excluding file extension) to be used for storage.
 # colors - The colors to be used for the venn diagram.
 #
 # Output:
 #
 ########
-benchmarkQuintupleVenn <- function(data, outside, file, colors) {
-  cairo_ps(file, width=7, height=7)
+benchmarkQuintupleVenn <- function(data, outside, fileName, colors) {
+  initializeGraphicsDevice(fileName, width=7, height=7)
   
   grid.draw(venn.diagram(data, NULL,
                          fontfamily="Helvetica", main.fontfamily="Helvetica",
@@ -334,8 +379,7 @@ benchmarkQuintupleVenn <- function(data, outside, file, colors) {
 #        contain the x-axis values, the second column the y-axis values and the
 #        third column should contain the different groups (are assigned
 #        different colors).
-# file - Full path (including the ".eps" extension) to the location where the
-#        plot should be stored on local storage.
+# fileName - Filename (excluding file extension) to be used for storage.
 # colors - The colors to be used within the plot (each group gets a different
 #          color)
 # xAxisFreq - The frequency of x-axis lines.
@@ -347,7 +391,8 @@ benchmarkQuintupleVenn <- function(data, outside, file, colors) {
 # Output:
 #
 ########
-hitPositionsScatterplot <- function(data, file, colors, xAxisFreq, yAxisFreq, xlab, ylab, parMar=c(4.5,4.5,0.5,0.5)) {
+hitPositionsScatterplot <- function(data, fileName, colors, xAxisFreq, yAxisFreq,
+                                    xlab, ylab, parMar=c(4.5,4.5,0.5,0.5)) {
   # Renames colnames for universal usage.
   colnames(data) <- c("x", "y", "group")
   
@@ -372,7 +417,7 @@ hitPositionsScatterplot <- function(data, file, colors, xAxisFreq, yAxisFreq, xl
   toolNames <- levels(data[,3])
 
   # Plot total genes against found position.
-  cairo_ps(file, width=10, height=6)
+  initializeGraphicsDevice(fileName, width=10, height=6)
   par(mar=parMar)
 
   plot(1, las=1, type="n", bty="u",
@@ -435,8 +480,7 @@ hitPositionsScatterplot <- function(data, file, colors, xAxisFreq, yAxisFreq, xl
 # Input:
 # data - The data to be plotted. Should contain 2 columns containing the different
 #        tools that are compared.
-# file - Full path (including the ".eps" extension) to the location where the
-#        plot should be stored on local storage.
+# fileName - Filename (excluding file extension) to be used for storage.
 # xyMax - The plot max of both the x-axis and y-axis.
 # xlab - The x-axis label.
 # ylab - The y-axis label.
@@ -449,11 +493,12 @@ hitPositionsScatterplot <- function(data, file, colors, xAxisFreq, yAxisFreq, xl
 # Output:
 #
 ########
-plotToolComaprison <- function(data, file, xyMax, xlab, ylab, xyMin=0, naHitsAdjust=0.3, parMar=c(4.5,4.5,1.5,1.5)) {
+plotToolComaprison <- function(data, fileName, xyMax, xlab, ylab, xyMin=0,
+                               naHitsAdjust=0.3, parMar=c(4.5,4.5,1.5,1.5)) {
   col1ValuesWithNaCol2 <- data[is.na(data[,2]),1]
   col2ValuesWithNaCol1 <- data[is.na(data[,1]),2]
   
-  postscript(file, width=6, height=6)
+  initializeGraphicsDevice(fileName, width=6, height=6)
   par(mar=parMar)
   plot(data[,1], data[,2], las=1, pch=20,
        xlim=c(xyMin,xyMax), ylim=c(xyMin,xyMax), xlab=xlab, ylab=ylab,
@@ -489,8 +534,7 @@ plotToolComaprison <- function(data, file, xyMax, xlab, ylab, xyMin=0, naHitsAdj
 # Input:
 # data - The data to be plotted. Should contain a column per tool to plot and
 #        row names indicating the x-axis values.
-# file - Full path (including the ".eps" extension) to the location where the
-#        plot should be stored on local storage.
+# fileName - Filename (excluding file extension) to be used for storage.
 # xlab - The x-axis label.
 # ylab - The y-axis label.
 # addAbline - Whether abline(0,1) should be added to plot. DEFAULT=TRUE
@@ -499,10 +543,11 @@ plotToolComaprison <- function(data, file, xyMax, xlab, ylab, xyMin=0, naHitsAdj
 # Output:
 #
 ########
-plotMatchesFoundWihinRangeCutoff <- function(data, file, xlab, ylab, colors, addAbline=TRUE, parMar=c(4.5,4.5,0.5,0.5)) {
+plotMatchesFoundWihinRangeCutoff <- function(data, fileName, xlab, ylab, colors,
+                                             addAbline=TRUE, parMar=c(4.5,4.5,0.5,0.5)) {
   highestUsedCutoffWithinData <- as.numeric(rownames(data)[nrow(data)])
   
-  postscript(file, width=10, height=5)
+  initializeGraphicsDevice(fileName, width=10, height=5)
   par(mar=parMar)
   # Generates empty plot to use.
   plot(1, type="n", las=1, xlim=c(0, highestUsedCutoffWithinData), ylim=c(0,1),
@@ -527,6 +572,8 @@ plotMatchesFoundWihinRangeCutoff <- function(data, file, xlab, ylab, colors, add
 
 
 
+
+
 ##################
 ###    Code    ###
 ##################
@@ -538,10 +585,7 @@ plotMatchesFoundWihinRangeCutoff <- function(data, file, xlab, ylab, colors, add
 # Defaults
 oldPar <- par()
 setEPS() # Sets EPS engine for writing images.
-
-# Adjust to local system.
-baseDir <- '~/programming/projects/vibe/data/benchmarking/'
-imgExportDir <- '~/Documents/afstuderen/verslag/img/'
+toolColors <- brewer.pal(5, 'Set2') # Adjust if changing number of tools!!!
 
 # Load data.
 benchmarkData <- read.table(paste0(baseDir,"benchmark_data.tsv"), header=T,
@@ -552,6 +596,7 @@ amelie <- readResultFile("results/amelie.tsv")
 geneNetwork <- readResultFile("results/gene_network.tsv")
 phenomizer <- readResultFile("results/phenomizer.tsv")
 phenotips <- readResultFile("results/phenotips.tsv")
+
 vibe.gda_max <- readResultFile("results/vibe_2018-07-06_gda_max.tsv")
 vibe.dsi <- readResultFile("results/vibe_2018-07-06_dsi.tsv")
 vibe.dpi <- readResultFile("results/vibe_2018-07-06_dpi.tsv")
@@ -561,6 +606,7 @@ amelie <- sortRows(amelie)
 geneNetwork <- sortRows(geneNetwork)
 phenomizer <- sortRows(phenomizer)
 phenotips <- sortRows(phenotips)
+
 vibe.gda_max <- sortRows(vibe.gda_max)
 vibe.dsi <- sortRows(vibe.dsi)
 vibe.dpi <- sortRows(vibe.dpi)
@@ -723,103 +769,114 @@ naExceptPhenomizerOnly <- cbind(benchmarkData[rownames(naExceptPhenomizerOnly),
                                               c("lovd", "gene")],
                                 naExceptPhenomizerOnly)
 
+
+
 ###
 ### Plotting vibe-only figures.
 ###
 
 toolValuesBoxPlot(positionResults.vibe,
-                  paste0(imgExportDir, 'benchmarking_gene_position_vibe_absolute.eps'),
+                  'benchmarking_gene_position_vibe_absolute',
                   1, 500, 500,
                   "",
                   "position")
 
 toolRankingBarplot(t(vibeAlgorithmsRankingCounts),
-                   paste0(imgExportDir, 'benchmarking_vibe_algorithms_ranking.eps'),
+                   'benchmarking_vibe_algorithms_ranking',
                    "", c(0.5,-23))
 
 
 
 ###
-### Plotting tool-comparison figures.
+### Basic boxplots/barplots comparing the different tools.
 ###
-
-# Generics.
-toolColors <- brewer.pal(ncol(positionResults), 'Set2')
 
 # Boxplot comparing absolute positions of genes.
 toolValuesBoxPlot(log10(positionResults),
-                  paste0(imgExportDir, 'benchmarking_gene_position_absolute.eps'),
+                  'benchmarking_gene_position_absolute',
                   0, 1, 0.5,
                   "",
                   "position (log10)")
 
 # Boxplot comparing number of suggested genes found.
 toolValuesBoxPlot(log10(totalResults),
-                  paste0(imgExportDir, 'benchmarking_gene_position_total_hits.eps'),
+                  'benchmarking_gene_position_total_hits',
                   0, 1, 0.5,
                   "",
                   "number of genes (log10)")
 
 # Boxplot comparing relative positions of genes (absolute position / number of suggested genes found).
 toolValuesBoxPlot(relativePositionResults,
-                  paste0(imgExportDir, 'benchmarking_gene_position_relative.eps'),
+                  'benchmarking_gene_position_relative',
                   0.0, 0.2, 0.05,
                   "",
                   "relative position")
 
 # Barplot showing the tool rankings.
 toolRankingBarplot(t(toolRankingCounts),
-                   paste0(imgExportDir, 'benchmarking_tool_ranking.eps'),
+                   'benchmarking_tool_ranking',
                    "", c(0,-23))
+
+
+
+###
+### Venn diagrams at different cutoffs comparing overlap in found genes between tools.
+###
 
 # Plot differences in whether the gene was found.
 benchmarkQuintupleVenn(apply(!is.na(positionResults), 2, which),
                        sum(apply(is.na(positionResults), 1, all)),
-                       paste0(imgExportDir, 'benchmarking_overlap_genes_found_absolute.eps'),
+                       'benchmarking_overlap_genes_found_absolute',
                        toolColors)
 
 # Plot differences in whether the gene was found within the first 10000 positions.
 benchmarkQuintupleVenn(apply(positionResults <=10000, 2, which),
                        sum(apply(positionResults > 10000, 1, all, na.rm=T)),
-                       paste0(imgExportDir, 'benchmarking_overlap_genes_found_absolute_max_10000.eps'),
+                       'benchmarking_overlap_genes_found_absolute_max_10000',
                        toolColors)
 
 # Plot differences in whether the gene was found within the first 1000 positions.
 benchmarkQuintupleVenn(apply(positionResults <=1000, 2, which),
                        sum(apply(positionResults > 1000, 1, all, na.rm=T)),
-                       paste0(imgExportDir, 'benchmarking_overlap_genes_found_absolute_max_1000.eps'),
+                       'benchmarking_overlap_genes_found_absolute_max_1000',
                        toolColors)
 
 # Plot differences in whether the gene was found within the first 100 positions.
 benchmarkQuintupleVenn(apply(positionResults <=100, 2, which),
                        sum(apply(positionResults > 100, 1, all, na.rm=T)),
-                       paste0(imgExportDir, 'benchmarking_overlap_genes_found_absolute_max_100.eps'),
+                       'benchmarking_overlap_genes_found_absolute_max_100',
                        toolColors)
 
 # Plot differences in whether the gene was found within the first 20 positions.
 benchmarkQuintupleVenn(apply(positionResults <=20, 2, which),
                        sum(apply(positionResults > 20, 1, all, na.rm=T)),
-                       paste0(imgExportDir, 'benchmarking_overlap_genes_found_absolute_max_20.eps'),
+                       'benchmarking_overlap_genes_found_absolute_max_20',
                        toolColors)
 
 # Plot differences in whether the gene was found within the first 20 positions.
 benchmarkQuintupleVenn(apply(positionResults <=10, 2, which),
                        sum(apply(positionResults > 10, 1, all, na.rm=T)),
-                       paste0(imgExportDir, 'benchmarking_overlap_genes_found_absolute_max_10.eps'),
+                       'benchmarking_overlap_genes_found_absolute_max_10',
                        toolColors)
 
 # Plot differences in whether the gene was found within the first 20 positions.
 benchmarkQuintupleVenn(apply(relativePositionResults <=0.2, 2, which),
                        sum(apply(relativePositionResults > 0.2, 1, all, na.rm=T)),
-                       paste0(imgExportDir, 'benchmarking_overlap_genes_found_relative_max_0dot1.eps'),
+                       'benchmarking_overlap_genes_found_relative_max_0dot1',
                        toolColors)
+
+
+
+###
+### Phenotype information comparing the tools (using the phenotypes for which the tools ranked first).
+###
 
 # Data transformation for upcoming plots.
 dataToPlot <- t(phenotypeCountsWhenToolRankedFirst[which(phenotypeTotals > 5),])
 dataYMax <- ceiling(max(apply(dataToPlot, 2, sum))/100)*100+2
 
 # Plot absolute phenotype frequencies grouped by best ranking tool.
-postscript(paste0(imgExportDir, 'benchmarking_first_rank_phenotype_frequencies.eps'), width=7, height=8)
+initializeGraphicsDevice('benchmarking_first_rank_phenotype_frequencies', width=7, height=8)
 par(mar=c(4.5,10.0,0.5,0.5))
 barplot(dataToPlot, xaxt='n', yaxt='n', space=0, xlim=c(0,dataYMax), horiz=TRUE)
 abline(v=seq(0, dataYMax, 5), col="gray92")
@@ -833,7 +890,7 @@ legend("topright", colnames(phenotypeCountsWhenToolRankedFirst), bg="white",
 dev.off()
 
 # Plot relative phenotype frequencies grouped by best ranking tool.
-postscript(paste0(imgExportDir, 'benchmarking_first_rank_phenotype_frequencies_relative.eps'), width=7, height=8)
+initializeGraphicsDevice('benchmarking_first_rank_phenotype_frequencies_relative', width=7, height=8)
 par(mar=c(5.5,11.0,0.0,1.0))
 barplot(prop.table(dataToPlot, 2), # excludes input phenotypes with only NA
         col=toolColors, las=1, cex.names=0.5, space=0, main="",
@@ -843,6 +900,15 @@ legend(-0.38,-1, colnames(phenotypeCountsWhenToolRankedFirst),
        fill=toolColors)
 dev.off()
 
+# Ensures dataToPlot cannot be used afterwards.
+rm(dataToPlot)
+
+
+
+###
+### Scatterplots comparing the found positions to the total number of output genes.
+###
+
 # Data transformation for upcoming plots.
 dataToPlot <- data.frame(hits=unlist(totalResults),
                          position=unlist(positionResults),
@@ -850,7 +916,7 @@ dataToPlot <- data.frame(hits=unlist(totalResults),
 
 # Plots hits compared to total positions without geneNetwork.
 hitPositionsScatterplot(dataToPlot[which(dataToPlot$tool != "geneNetwork"),],
-                        paste0(imgExportDir, 'tools_position_totalHits_no_geneNetwork.eps'),
+                        'tools_position_totalHits_no_geneNetwork',
                         toolColors, 1000, 1000,
                         "total hits", "absolute position")
 
@@ -860,16 +926,24 @@ dataToPlot$position <- log10(dataToPlot$position)
 
 # Plots hits compared to total positions with geneNetwork (log10 transformed).
 hitPositionsScatterplot(dataToPlot,
-                        paste0(imgExportDir, 'tools_position_totalHits_log10.eps'), 
-                        toolColors,
-                        1, 1, 
+                        'tools_position_totalHits_log10', 
+                        toolColors, 1, 1, 
                         "total hits (log10)", "absolute position (log10)")
+
+# Ensures dataToPlot cannot be used afterwards.
+rm(dataToPlot)
+
+
+
+###
+### Compares amelie with vibe.
+###
 
 # Plots vibe against amelie (absolute).
 dataToPlot <- log10(data.frame(vibe=positionResults$vibe,
                                amelie=positionResults$amelie))
 plotToolComaprison(dataToPlot,
-                   paste0(imgExportDir, 'benchmark_positions_amelie_vibe_absolute.eps'),
+                   'benchmark_positions_amelie_vibe_absolute',
                    max(dataToPlot, na.rm=TRUE),
                    "absolute position in vibe (log10)",
                    "absolute position in amelie (log10)")
@@ -878,17 +952,23 @@ plotToolComaprison(dataToPlot,
 dataToPlot <- log10(data.frame(vibe=relativePositionResults$vibe,
                          amelie=relativePositionResults$amelie))
 plotToolComaprison(dataToPlot,
-                   paste0(imgExportDir, 'benchmark_positions_amelie_vibe_relative.eps'),
+                   'benchmark_positions_amelie_vibe_relative',
                    xyMin=floor(min(dataToPlot, na.rm=TRUE)),
                    xyMax=ceiling(max(dataToPlot, na.rm=TRUE)),
                    "relative position in vibe (log10)",
                    "relative position in amelie (log10)")
 
+
+
+###
+### Curves showing how many genes were found within different cutoffs.
+###
+
 # Plots how often genes were found using cutoffs of total available hits.
 # Shows how many hits were found when looking at a specific absolute cutoff
 # max positions from all genes found.
 plotMatchesFoundWihinRangeCutoff(genePercentageFoundWithinAbsoluteCutoff[1:5000,],
-                                 paste0(imgExportDir, 'found_genes_for_absolute_cutoffs.eps'),
+                                 'found_genes_for_absolute_cutoffs',
                                  "absolute cutoff within total hits",
                                  "fraction of genes found within cutoff",
                                  toolColors,
@@ -897,10 +977,16 @@ plotMatchesFoundWihinRangeCutoff(genePercentageFoundWithinAbsoluteCutoff[1:5000,
 # Shows how many hits were found when looking at a specific cutoff fractions
 # from all genes found.
 plotMatchesFoundWihinRangeCutoff(genePercentageFoundWithinRelativeCutoff,
-                                 paste0(imgExportDir, 'found_genes_for_relative_cutoffs.eps'),
+                                 'found_genes_for_relative_cutoffs',
                                  "relative cutoff within total hits",
                                  "fraction of genes found within cutoff",
                                  toolColors)
+
+
+
+###
+### Heatmaps showing the relative positions from the different tools.
+###
 
 # Generates a heatmap from the relative position results.
 dataToPlot <- relativePositionResults
@@ -913,7 +999,7 @@ dataToPlot <- melt(dataToPlot, id.vars=0,
                    value.name="relativePosition")
 dataToPlot <- cbind(y=1:nrow(relativePositionResults), dataToPlot)
 
-postscript(paste0(imgExportDir, 'heatmap_relative_positions.eps'), width=7, height=5)
+initializeGraphicsDevice('heatmap_relative_positions', width=7, height=5)
 ggplot(dataToPlot, aes(x=tool, y=y, colour="")) + # colour is to trick ggplot for "not found" in legend
   theme_bw() +
   theme(panel.grid=element_blank(),
@@ -931,3 +1017,4 @@ ggplot(dataToPlot, aes(x=tool, y=y, colour="")) + # colour is to trick ggplot fo
   scale_colour_manual(values=NA) + # makes sure aes colour is not visible
   scale_y_discrete(expand=c(0,0)) # moves x labels closer
 dev.off()
+
