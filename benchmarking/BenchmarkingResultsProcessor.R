@@ -13,6 +13,8 @@
 #install.packages("VennDiagram")
 library(VennDiagram)
 library(RColorBrewer)
+library(dplyr)
+library(scales)
 
 
 
@@ -345,13 +347,29 @@ benchmarkQuintupleVenn <- function(data, outside, file, colors) {
 hitPositionsScatterplot <- function(data, file, colors, xAxisFreq, yAxisFreq, xlab, ylab, parMar=c(4.5,4.5,0.5,0.5)) {
   # Renames colnames for universal usage.
   colnames(data) <- c("x", "y", "group")
+  
+  # Replaces Inf with NA as these values cannot be plotted (but could cause
+  # issues if left in the data).
+  data[which(abs(data$x) == Inf), "x"] <- NA
+  data[which(abs(data$y) == Inf), "y"] <- NA
+  
+  # Removes values that have an NA as either x or y coordinate.
+  data <- data[apply(data[,c("x", "y")], 1, function(x) {!any(is.na(x))}),]
+  
+  # Adjustments for if the group column has more levels than mentioned by the
+  # actual rows.
+  colors <- colors[c(unique(data[,3]))]
+  data[,3] <- droplevels(data[,3])
 
   # Calculates highest x & y value.
-  xAxisMax <- ceiling(max(data[,1], na.rm=T)/xAxisFreq)*xAxisFreq
-  yAxisMax <- ceiling(max(data[,2], na.rm=T)/yAxisFreq)*yAxisFreq
+  xAxisMax <- ceiling(max(data[,1])/xAxisFreq)*xAxisFreq
+  yAxisMax <- ceiling(max(data[,2])/yAxisFreq)*yAxisFreq
+  
+  # Recurring usage.
+  toolNames <- levels(data[,3])
 
   # Plot total genes against found position.
-  postscript(file, width=10, height=6)
+  cairo_ps(file, width=10, height=6)
   par(mar=parMar)
 
   plot(1, las=1, type="n", bty="u",
@@ -360,10 +378,45 @@ hitPositionsScatterplot <- function(data, file, colors, xAxisFreq, yAxisFreq, xl
        xlim=c(0, xAxisMax),
        ylim=c(0, yAxisMax))
   abline(h=seq(0,yAxisMax, yAxisFreq), v=seq(0,xAxisMax, xAxisFreq), col="grey92")
-  abline(0,1) # indicates where position limit is (position <= hits)
-  legend("topleft", levels(data[,3]), col=colors,
-         pch=20, bg="white")
-  points(y~x, data, col=colors[group], pch=20)
+  abline(0,1, col="grey92") # indicates where position limit is (position <= hits)
+  legend("topleft", c(toolNames, "combined", "data point",
+                        "mean", "linear model"),
+         col=c(colors, "red", rep("black", 3)),
+         pch=c(rep(15, length(toolNames)+1), 20, 25, NA),
+         lty=c(rep(NA, length(toolNames)+3), 1),
+         bg="white")
+  points(y~x, data, col=alpha(colors[group], 0.4), pch=20)
+  
+  # Calculates data per group.
+  groupData <- data %>% group_by(group) %>% summarise(x.mean = mean(x),
+                                                      y.mean = mean(y),
+                                                      x.min = min(x),
+                                                      x.max = max(x),
+                                                      y.min = min(y),
+                                                      y.max = max(y))
+  
+  # Linear model of all data.
+  clip(min(data$x), max(data$x), min(data$y), max(data$y))
+  abline(lm(y~x, data), col="red", lwd=2)
+  
+  # Linear model per tool.
+  groupLinearModels <- data %>% group_by(group) %>% do(model = lm(y~x, data = .))
+  for(i in 1:nrow(groupLinearModels)) {
+    # Clips range for abline to the limits of the specific tool.
+    clip(groupData$x.min[[i]],
+         groupData$x.max[[i]],
+         groupData$y.min[[i]],
+         groupData$y.max[[i]])
+    # A try is required for cases where a tool always returns the exact number
+    # of output genes (so x values are always the same).
+    try(abline(groupLinearModels$model[[i]], col=colors[i], lwd=2))
+  }
+  
+  # Resets clip region.
+  do.call("clip", as.list(par("usr")))
+  
+  # Adds mean per group to plot.
+  points(y.mean~x.mean, groupData, bg=colors[group], pch=25, col="black")
 
   dev.off()
 }
