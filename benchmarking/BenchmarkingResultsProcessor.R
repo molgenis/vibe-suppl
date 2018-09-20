@@ -35,7 +35,6 @@ imgExportDir <- '~/Documents/afstuderen/verslag/img/'
 ### Libraries  ###
 ##################
 
-#install.packages("VennDiagram")
 library(VennDiagram)
 library(RColorBrewer)
 library(dplyr)
