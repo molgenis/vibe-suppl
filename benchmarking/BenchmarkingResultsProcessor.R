@@ -15,6 +15,9 @@ library(VennDiagram)
 library(RColorBrewer)
 library(dplyr)
 library(scales)
+library(reshape2)
+library(ggplot2)
+library(viridis)
 
 
 
@@ -898,3 +901,33 @@ plotMatchesFoundWihinRangeCutoff(genePercentageFoundWithinRelativeCutoff,
                                  "relative cutoff within total hits",
                                  "fraction of genes found within cutoff",
                                  toolColors)
+
+# Generates a heatmap from the relative position results.
+dataToPlot <- relativePositionResults
+dataToPlot[is.na(dataToPlot)] <- 1.1
+ord <- hclust(dist(dataToPlot, method = "euclidean"), method="ward.D")$order
+dataToPlot <- dataToPlot[ord,]
+
+dataToPlot <- melt(dataToPlot, id.vars=0,
+                   variable.name="tool",
+                   value.name="relativePosition")
+dataToPlot <- cbind(y=1:nrow(relativePositionResults), dataToPlot)
+
+postscript(paste0(imgExportDir, 'heatmap_relative_positions.eps'), width=7, height=5)
+ggplot(dataToPlot, aes(x=tool, y=y, colour="")) + # colour is to trick ggplot for "not found" in legend
+  theme_bw() +
+  theme(panel.grid=element_blank(),
+        panel.border=element_blank(),
+        axis.text.x=element_text(margin=margin(b=5)),
+        axis.ticks.x=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank()) +
+  labs(y="patient cases (ordered by euclidean distance)",
+       fill="relative position",
+       colour="not found") +
+  geom_tile(aes(fill=relativePosition)) +
+  scale_fill_viridis(direction=-1, option="C", na.value="black",
+                     limits = c(0,1)) + # excludes the NA value (which is > 1)
+  scale_colour_manual(values=NA) + # makes sure aes colour is not visible
+  scale_y_discrete(expand=c(0,0)) # moves x labels closer
+dev.off()
