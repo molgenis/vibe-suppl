@@ -38,10 +38,13 @@ imgExportDir <- '~/Documents/afstuderen/verslag/img/'
 library(VennDiagram)
 library(RColorBrewer)
 library(dplyr)
-library(scales)
+#library(scales) # imported through ggplot2
 library(reshape2)
 library(ggplot2)
+library(ggdendro)
 library(viridis)
+#library(heatmaply) # code commented due to issues
+library(cowplot)
 
 
 
@@ -564,7 +567,26 @@ plotMatchesFoundWihinRangeCutoff <- function(data, fileName, xlab, ylab, colors,
   dev.off()
 }
 
-
+########
+# Name:
+# ggplotLegend
+#
+# Description:
+# Retrieves legend from a ggplot.
+# Based on https://stackoverflow.com/a/12041779
+#
+# Input:
+# ggplot - The plot to retrieve the legend from.
+#
+# Output:
+# The legend from the plot.
+########
+ggplotLegend <- function(ggplot){ 
+  tmp <- ggplot_gtable(ggplot_build(ggplot)) 
+  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box") 
+  legend <- tmp$grobs[[leg]] 
+  return(legend)
+}
 
 
 
@@ -981,36 +1003,95 @@ plotMatchesFoundWihinRangeCutoff(genePercentageFoundWithinRelativeCutoff,
 
 
 ###
-### Heatmaps showing the relative positions from the different tools.
+### Heatmap showing the relative positions from the different tools.
 ###
 
-# Generates a heatmap from the relative position results.
+# Prepares data for heatmap.
+naValue <- 2
 dataToPlot <- relativePositionResults
-dataToPlot[is.na(dataToPlot)] <- 1.1
-ord <- hclust(dist(dataToPlot, method = "euclidean"), method="ward.D")$order
-dataToPlot <- dataToPlot[ord,]
+dataToPlot[is.na(dataToPlot)] <- naValue
+xClust <- hclust(dist(t(dataToPlot), method = "euclidean"), method="complete")
+yClust <- hclust(dist(dataToPlot, method = "euclidean"), method="complete")
 
+# y values are reversed as the y-positions count from bottom to top while
+# ggdendrogram(yClust, rotate=T) displays the values from top to bottom.
+dataToPlot <- dataToPlot[rev(yClust$order),xClust$order] 
+
+# Prepares data for heatmap.
 dataToPlot <- melt(dataToPlot, id.vars=0,
                    variable.name="tool",
                    value.name="relativePosition")
 dataToPlot <- cbind(y=1:nrow(relativePositionResults), dataToPlot)
 
-initializeGraphicsDevice('heatmap_relative_positions', width=7, height=5)
-ggplot(dataToPlot, aes(x=tool, y=y, colour="")) + # colour is to trick ggplot for "not found" in legend
+# Theme for dendrograms.
+dendroTheme <- theme(axis.title.x=element_blank(),
+                     axis.title.y=element_blank(),
+                     axis.text.x=element_blank(),
+                     axis.text.y=element_blank())
+
+# Tool dendogram.
+xClustPlot <- ggdendrogram(xClust) + dendroTheme
+
+# Patient cases dendogram.
+yClustPlot <- ggdendrogram(yClust, rotate=T) + dendroTheme
+
+# Heatmap.
+hmPlot <- ggplot(dataToPlot, aes(x=tool, y=y, colour="")) + # colour is to trick ggplot for "not found" in legend
   theme_bw() +
-  theme(panel.grid=element_blank(),
+  theme(legend.box="horizontal",
+        legend.box.spacing=unit(0, "cm"),
+        legend.key.size=unit(0.4, "cm"),
+        legend.text=element_text(size=6),
+        legend.title=element_text(size=9),
+        panel.grid=element_blank(),
         panel.border=element_blank(),
         axis.text.x=element_text(margin=margin(b=5)),
         axis.ticks.x=element_blank(),
         axis.text.y=element_blank(),
         axis.ticks.y=element_blank()) +
-  labs(y="patient cases (ordered by euclidean distance)",
+  labs(y="patient cases",
        fill="relative position",
        colour="not found") +
   geom_tile(aes(fill=relativePosition)) +
   scale_fill_viridis(direction=-1, option="C", na.value="black",
                      limits = c(0,1)) + # excludes the NA value (which is > 1)
-  scale_colour_manual(values=NA) + # makes sure aes colour is not visible
+  scale_colour_manual(values=NA, labels = naValue) + # makes sure aes colour is not visible
   scale_y_discrete(expand=c(0,0)) # moves x labels closer
+
+# Filter legend from heatmap and generate plot from it.
+hmInfo <- ggplotLegend(hmPlot)
+hmInfoPlot <- ggdraw() +
+  draw_grob(hmInfo$grobs[[1]], -0.3, 0) +
+  draw_grob(hmInfo$grobs[[2]], 0.3, 0)
+
+# Remove legend from original heatmap.
+hmPlot <- hmPlot + theme(legend.position = "none")
+
+# Generate image.
+initializeGraphicsDevice('heatmap_relative_positions', width=7, height=6)
+plot_grid(
+  xClustPlot, hmInfoPlot,
+  hmPlot, yClustPlot,
+  nrow = 2, ncol = 2,
+  align="hv",
+  axis="tblr",
+  rel_widths = c(3,1),
+  rel_heights = c(1,2.5),
+  scale=c(0.85,1,1,1.08)
+)
 dev.off()
 
+# Alternative method for heatmap (has export issues + no legend for missing values).
+#dataToPlot <- relativePositionResults
+#dataToPlot[is.na(dataToPlot)] <- 2
+#heatmaply(dataToPlot,
+#          col=plasma(100, direction=-1),
+#          limits=c(0,1),
+#          na.value="black",
+#          column_text_angle=0,
+#          dist_method="euclidean",
+#          hclust_method="complete",
+#          xlab="tools",
+#          ylab="patient cases",
+#          showticklabels=c(TRUE, FALSE),
+#          file=paste0(imgExportDir, 'heatmap_relative_positions_heatmaply.png'))
