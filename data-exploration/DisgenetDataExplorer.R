@@ -294,7 +294,7 @@ variantGroupAssociationsPmid <- variantAssociationsPmid[variantAssociationsPmid$
 variantPhenotypeAssociationsPmid <- variantAssociationsPmid[variantAssociationsPmid$diseaseType == 'phenotype',]
 
 # Loads association files created using bash from the "all_gene_disease_pmid_associations.tsv.gz" file.
-geneDiseaseAssociations <- read.table(gzfile(paste0(baseDir, 'complete_gene_disease_associations.tsv.gz')),
+geneAssociations <- read.table(gzfile(paste0(baseDir, 'complete_gene_associations.tsv.gz')),
                                       header=T, sep='\t', quote="", comment.char="")
 
 
@@ -393,15 +393,15 @@ plotAssociationsPerSourceAndLevel('',
 dev.off()
 
 ######## 
-######## Plots the number of associations per unique gene-disease combination.
+######## Plots the number of associations per unique gene combination.
 ########
-associationCounts <- tabulate(geneDiseaseAssociations$nAssociations)
+associationCounts <- tabulate(geneAssociations$nAssociations)
 
 # If no 'BEFREE=' present, resulting output cannot be cast to an integer.
 # This means each NA is gene-disease combination WITHOUT a befree association.
-befreeAssociationCounts <- as.integer(gsub(";.*", "", gsub(".*BEFREE=", "", geneDiseaseAssociations$sources)))
+befreeAssociationCounts <- as.integer(gsub(";.*", "", gsub(".*BEFREE=", "", geneAssociations$sources)))
 befreeAssociationCounts[which(is.na(befreeAssociationCounts))] <- 0 # Sets NAs to 0
-associationCountsWithoutBefree <- tabulate(geneDiseaseAssociations$nAssociations - befreeAssociationCounts)
+associationCountsWithoutBefree <- tabulate(geneAssociations$nAssociations - befreeAssociationCounts)
 
 barColors <- c('steelblue4', 'slategray2')
 
