@@ -536,6 +536,9 @@ plotToolComaprison <- function(data, fileName, xyMax, xlab, ylab, xyMin=0,
 # fileName - Filename (excluding file extension) to be used for storage.
 # xlab - The x-axis label.
 # ylab - The y-axis label.
+# colors - The colors to be used within the plot (each group gets a different
+#          color)
+# xLabelsStepSize - The step size of the x-axis labels.
 # addAbline - Whether abline(0,1) should be added to plot. DEFAULT=TRUE
 # parMar - the margin of the graphical parameters. DEFAULT=c(4.5,4.5,0.5,0.5)
 #
@@ -543,15 +546,15 @@ plotToolComaprison <- function(data, fileName, xyMax, xlab, ylab, xyMin=0,
 #
 ########
 plotMatchesFoundWihinRangeCutoff <- function(data, fileName, xlab, ylab, colors,
-                                             addAbline=TRUE, parMar=c(4.5,4.5,0.5,0.5)) {
+                                             xLabelsStepSize, addAbline=TRUE,
+                                             parMar=c(4.5,4.5,0.5,0.5)) {
   highestUsedCutoffWithinData <- as.numeric(rownames(data)[nrow(data)])
   
   initializeGraphicsDevice(fileName, width=10, height=5)
   par(mar=parMar)
   # Generates empty plot to use.
   plot(1, type="n", las=1, xlim=c(0, highestUsedCutoffWithinData), ylim=c(0,1),
-       xlab=xlab,
-       ylab=ylab)
+       at=seq(0,highestUsedCutoffWithinData,xLabelsStepSize), xlab=xlab, ylab=ylab)
   
   # Adds abline if requested.
   if(addAbline) {abline(0,1)}
@@ -989,8 +992,7 @@ plotMatchesFoundWihinRangeCutoff(genePercentageFoundWithinAbsoluteCutoff[1:5000,
                                  'found_genes_for_absolute_cutoffs',
                                  "absolute cutoff within total hits",
                                  "fraction of genes found within cutoff",
-                                 toolColors,
-                                 addAbline=FALSE)
+                                 toolColors, 500, addAbline=FALSE)
 
 # Shows how many hits were found when looking at a specific cutoff fractions
 # from all genes found.
@@ -998,7 +1000,7 @@ plotMatchesFoundWihinRangeCutoff(genePercentageFoundWithinRelativeCutoff,
                                  'found_genes_for_relative_cutoffs',
                                  "relative cutoff within total hits",
                                  "fraction of genes found within cutoff",
-                                 toolColors)
+                                 toolColors, 0.1)
 
 
 
