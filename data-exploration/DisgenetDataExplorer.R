@@ -86,7 +86,7 @@ plotPmids <- function(plotTitle, data) {
   barColors <- c('steelblue4', 'slategray2')
   barplot(dataToPlot, beside=T, ylim=c(0,ceiling(max(dataToPlot))), names.arg=xLabels,
           las=2, col=barColors, space=rep(c(1.2,0), 12), main=plotTitle,
-          ylab='number of associations (log10)')
+          ylab='number of references (log10)')
   mtext('source', side=1, line=6)
   legend(28,ceiling(max(dataToPlot)), c('with pmid', 'without pmid'), fill=barColors, bty = "n")
   par(oldPar)
@@ -329,7 +329,7 @@ dataToPlot <- c(all=length(unique(geneAssociationsPmid$geneId)),
 ylimTop <- ceiling(max(dataToPlot/1000))
 postscript(paste0(imgExportDir, 'unique_genes.eps'), width=5, height=5)
 barplot(dataToPlot/1000, ylim=c(0,20), las=1,
-        ylab='number of unique genes (per thousand)', col="steelblue4")
+        ylab='number of unique genes (x1000)', col="steelblue4")
 dev.off()
 
 rm(dataToPlot, ylimTop)
@@ -409,8 +409,8 @@ postscript(paste0(imgExportDir, 'associations_per_unique_gene_disease_combinatio
 xLim <- 200
 barplot(log10(associationCounts[1:xLim]), ylim=c(0,6),
         border=NA, col=barColors[2], space=0, las=1,
-        xlab='number of assocations',
-        ylab='number of unique gene-disease combinations (log10)')
+        xlab='number of references',
+        ylab='number of unique gene-disease references (log10)')
 barplot(log10(associationCountsWithoutBefree[1:xLim]), ylim=c(0,6), border=NA,
         col=barColors[1], space=0, las=1, add=T, yaxt='n')
 xLabels <- c(1,seq(20,xLim,20))
@@ -423,11 +423,11 @@ dataToPlotWithBefree <- log10(mergeValues(associationCounts,200))
 dataToPlotWithoutBefree <- log10(mergeValues(associationCountsWithoutBefree,200))
 x <- barplot(dataToPlotWithBefree, ylim=c(0,6),
         border=NA, col=barColors[2], las=1, xaxt='n',
-        ylab='number of unique gene-disease combinations (log10)')
+        ylab='number of unique gene-disease references (log10)')
 barplot(dataToPlotWithoutBefree, ylim=c(0,6), border=NA,
         col=barColors[1], las=1, add=T, yaxt='n', xaxt='n')
 text(cex=1, x=x+0.5, y=-0.25, names(dataToPlotWithBefree), xpd=TRUE, srt=45, pos=2)
-mtext(side=1, line=4, 'number of assocations')
+mtext(side=1, line=4, 'number of references')
 legend(14,6, c('without BeFree', 'with BeFree'), fill=barColors, bty = "n")
 dev.off()
 

@@ -275,22 +275,25 @@ calculateRankingCounts <- function(data, rankingResults) {
 # main - The plot title.
 # ylab - The y-axis label.
 # parMar - the margin of the graphical parameters. DEFAULT=c(4.5,4.5,0.5,0.5)
+# ylabMgp - Adjusts the mgp setting for ylab (see ?par). Only the first parameter
+#           is relevant. DEFAULT=c(3,1,0)
 #
 # Output:
 #
 ########
-toolValuesBoxPlot <- function(data, fileName, firstYValue, yAxisFreq, yAxisAblineFreq, main, ylab, parMar=c(4.5,4.5,0.5,0.5)) {
+toolValuesBoxPlot <- function(data, fileName, firstYValue, yAxisFreq,
+                              yAxisAblineFreq, main, ylab,
+                              parMar=c(4.5,4.5,0.5,0.5), ylabMgp=c(3,1,0)) {
   initializeGraphicsDevice(fileName, width=7, height=8)
   par(mar=parMar)
   
   yAxisMax <- ceiling(max(data, na.rm=T)/yAxisFreq)*yAxisFreq
   boxplot(data, ylim=c(firstYValue,yAxisMax), xaxt='n',yaxt='n', pch="")
-  abline(h=firstYValue, col="gray92")
-  abline(h=seq(yAxisAblineFreq, yAxisMax, yAxisAblineFreq), col="gray92")
+  abline(h=seq(yAxisAblineFreq+firstYValue, yAxisMax, yAxisAblineFreq), col="gray92")
   boxplot(data, las=1, pch=20, yaxt='n',
-          main=main, xlab="tool", ylab=ylab, col="white", add=T)
-  axis(2, las=1, at=firstYValue)
-  axis(2, las=1, at=seq(yAxisFreq, yAxisMax,yAxisFreq))
+          main=main, xlab="tool", ylab="", col="white", add=T)
+  title(ylab=ylab, mgp=ylabMgp)
+  axis(2, las=1, at=seq(yAxisFreq+firstYValue, yAxisMax,yAxisFreq))
   
   dev.off()
 }
@@ -306,22 +309,30 @@ toolValuesBoxPlot <- function(data, fileName, firstYValue, yAxisFreq, yAxisAblin
 # data - The data to be plotted (in general: the object generated from
 #        calculateRankingCounts() ).
 # fileName - Filename (excluding file extension) to be used for storage.
+# main - The plot title.
+# ylab - The y-axis label.
 # legendPos - A vector with 2 positions used for placing the legend().
 #             The first item from the vector will be used for the x-axis
 #             positioning. The second item from the vector will be used for the
 #             y-axis positioning.
-# parMar - the margin of the graphical parameters. DEFAULT=c(4.5,4.5,0.5,0.5)
+# parMar - the margin of the graphical parameters. DEFAULT=c(5.0,4.5,1.0,0.5)
 #
 # Output:
 #
 ########
-toolRankingBarplot <- function(data, fileName, main, legendPos, parMar=c(4.5,4.5,0.5,0.5)) {
+toolRankingBarplot <- function(data, fileName, main, ylab, legendPos, parMar=c(5.0,4.5,1.0,0.5)) {
   GreenToRedColors <- rev(brewer.pal(nrow(data), 'RdYlGn'))
+  
+  yAxisFactor <- 20
+  totalValues <- max(apply(data, 2, sum))
+  yAxisMax <- ceiling(totalValues/yAxisFactor)*yAxisFactor
+  
   initializeGraphicsDevice(fileName, width=7, height=8)
   par(mar=parMar)
   
-  barplot(data, col=GreenToRedColors, las=1,
-          main=main, ylab="sets")
+  barplot(data, col=GreenToRedColors, las=1, yaxt="n",
+          main=main, ylab=ylab, ylim=c(0,yAxisMax))
+  axis(2, at=seq(0, yAxisMax, yAxisFactor), las=1)
   par(xpd=TRUE) # no clipping for drawing outside plot
   legend(legendPos[1], legendPos[2], rownames(data),
          fill=GreenToRedColors, ncol=nrow(data))
@@ -386,12 +397,15 @@ benchmarkQuintupleVenn <- function(data, outside, fileName, colors) {
 # xlab - The x-axis label.
 # ylab - The y-axis label.
 # parMar - the margin of the graphical parameters. DEFAULT=c(4.5,4.5,0.5,0.5)
+# ylabMgp - Adjusts the mgp setting for ylab (see ?par). Only the first parameter
+#           is relevant. DEFAULT=c(3,1,0)
 #
 # Output:
 #
 ########
 hitPositionsScatterplot <- function(data, fileName, colors, xAxisFreq, yAxisFreq,
-                                    xlab, ylab, parMar=c(4.5,4.5,0.5,0.5)) {
+                                    xlab, ylab, parMar=c(4.5,4.5,0.5,0.5),
+                                    ylabMgp=c(3,1,0)) {
   # Renames colnames for universal usage.
   colnames(data) <- c("x", "y", "group")
   
@@ -421,12 +435,13 @@ hitPositionsScatterplot <- function(data, fileName, colors, xAxisFreq, yAxisFreq
 
   plot(1, las=1, type="n", bty="u",
        xlab=xlab,
-       ylab=ylab,
+       ylab="",
        xlim=c(0, xAxisMax),
        ylim=c(0, yAxisMax))
+  title(ylab=ylab, mgp=ylabMgp)
   abline(h=seq(0,yAxisMax, yAxisFreq), v=seq(0,xAxisMax, xAxisFreq), col="grey92")
   abline(0,1, col="grey92") # indicates where position limit is (position <= hits)
-  legend("topleft", c(toolNames, "combined", "data point",
+  legend("topleft", c(toolNames, "combined", "patient case",
                         "mean", "linear model"),
          col=c(colors, "red", rep("black", 3)),
          pch=c(rep(15, length(toolNames)+1), 20, 25, NA),
@@ -504,7 +519,7 @@ plotToolComaprison <- function(data, fileName, xyMax, xlab, ylab, xyMin=0,
        # Makes sure grid & legend are drawn before the data.
        panel.first=c(grid(col="gray92", lty=1),
                      legend("topleft",
-                            c("data-point", "mean", "Y=X", "linear model"),
+                            c("patient case", "mean", "Y=X", "linear model"),
                             pch=c(20, 20, NA, NA),
                             lty=c(NA, NA, 1, 1),
                             col=c("black", "orange", "red", "orange"),
@@ -554,7 +569,9 @@ plotMatchesFoundWihinRangeCutoff <- function(data, fileName, xlab, ylab, colors,
   par(mar=parMar)
   # Generates empty plot to use.
   plot(1, type="n", las=1, xlim=c(0, highestUsedCutoffWithinData), ylim=c(0,1),
-       at=seq(0,highestUsedCutoffWithinData,xLabelsStepSize), xlab=xlab, ylab=ylab)
+       xlab=xlab, ylab=ylab, xaxt="n", yaxt="n")
+  axis(1, at=seq(0,highestUsedCutoffWithinData,xLabelsStepSize), las=1)
+  axis(2, at=seq(0,1,0.1), las=1)
   
   # Adds abline if requested.
   if(addAbline) {abline(0,1)}
@@ -800,11 +817,12 @@ toolValuesBoxPlot(positionResults.vibe,
                   'benchmarking_gene_position_vibe_absolute',
                   1, 500, 500,
                   "",
-                  "position")
+                  "absolute position of validation genes within the output genes",
+                  parMar=c(4.5,5.5,0.5,0.5), ylabMgp=c(4,1,0))
 
 toolRankingBarplot(t(vibeAlgorithmsRankingCounts),
                    'benchmarking_vibe_algorithms_ranking',
-                   "", c(0.5,-23))
+                   "", "patient cases", c(0.5,-23))
 
 
 
@@ -817,26 +835,26 @@ toolValuesBoxPlot(log10(positionResults),
                   'benchmarking_gene_position_absolute',
                   0, 1, 0.5,
                   "",
-                  "position (log10)")
+                  "absolute position of validation genes within the output genes (log10)")
 
 # Boxplot comparing number of suggested genes found.
 toolValuesBoxPlot(log10(totalResults),
                   'benchmarking_gene_position_total_hits',
                   0, 1, 0.5,
                   "",
-                  "number of genes (log10)")
+                  "number of output genes (log10)")
 
 # Boxplot comparing relative positions of genes (absolute position / number of suggested genes found).
 toolValuesBoxPlot(relativePositionResults,
                   'benchmarking_gene_position_relative',
                   0.0, 0.2, 0.05,
                   "",
-                  "relative position")
+                  "relative position of validation genes within the output genes")
 
 # Barplot showing the tool rankings.
 toolRankingBarplot(t(toolRankingCounts),
                    'benchmarking_tool_ranking',
-                   "", c(0,-23))
+                   "", "patient cases", c(0,-23))
 
 
 
@@ -874,15 +892,33 @@ benchmarkQuintupleVenn(apply(positionResults <=20, 2, which),
                        'benchmarking_overlap_genes_found_absolute_max_20',
                        toolColors)
 
-# Plot differences in whether the gene was found within the first 20 positions.
+# Plot differences in whether the gene was found within the first 10 positions.
 benchmarkQuintupleVenn(apply(positionResults <=10, 2, which),
                        sum(apply(positionResults > 10, 1, all, na.rm=T)),
                        'benchmarking_overlap_genes_found_absolute_max_10',
                        toolColors)
 
-# Plot differences in whether the gene was found within the first 20 positions.
+# Plot differences in whether the gene was found within the first 40% of output genes.
+benchmarkQuintupleVenn(apply(relativePositionResults <=0.4, 2, which),
+                       sum(apply(relativePositionResults > 0.4, 1, all, na.rm=T)),
+                       'benchmarking_overlap_genes_found_relative_max_0dot4',
+                       toolColors)
+
+# Plot differences in whether the gene was found within the first 30% of output genes.
+benchmarkQuintupleVenn(apply(relativePositionResults <=0.3, 2, which),
+                       sum(apply(relativePositionResults > 0.3, 1, all, na.rm=T)),
+                       'benchmarking_overlap_genes_found_relative_max_0dot3',
+                       toolColors)
+
+# Plot differences in whether the gene was found within the first 20% of output genes.
 benchmarkQuintupleVenn(apply(relativePositionResults <=0.2, 2, which),
                        sum(apply(relativePositionResults > 0.2, 1, all, na.rm=T)),
+                       'benchmarking_overlap_genes_found_relative_max_0dot2',
+                       toolColors)
+
+# Plot differences in whether the gene was found within the first 10% of output genes.
+benchmarkQuintupleVenn(apply(relativePositionResults <=0.1, 2, which),
+                       sum(apply(relativePositionResults > 0.1, 1, all, na.rm=T)),
                        'benchmarking_overlap_genes_found_relative_max_0dot1',
                        toolColors)
 
@@ -898,24 +934,25 @@ dataYMax <- ceiling(max(apply(dataToPlot, 2, sum))/100)*100+2
 
 # Plot absolute phenotype frequencies grouped by best ranking tool.
 initializeGraphicsDevice('benchmarking_first_rank_phenotype_frequencies', width=7, height=8)
-par(mar=c(4.5,10.0,0.5,0.5))
+par(mar=c(4.5,11.5,0.5,0.5))
 barplot(dataToPlot, xaxt='n', yaxt='n', space=0, xlim=c(0,dataYMax), horiz=TRUE)
 abline(v=seq(0, dataYMax, 5), col="gray92")
 abline(v=seq(0, dataYMax, 20), col="gray72")
 barplot(dataToPlot, # excludes input phenotypes with only NA
         col=toolColors, las=1, cex.names=0.5, space=0, xlim=c(0,dataYMax),
         main="", xlab="phenotype input frequency", add=TRUE, horiz=TRUE)
-par(xpd=TRUE) # no clipping for drawing outside plot
+title(ylab="phenotype", mgp=c(10,1,0))
 legend("topright", colnames(phenotypeCountsWhenToolRankedFirst), bg="white",
        fill=toolColors)
 dev.off()
 
 # Plot relative phenotype frequencies grouped by best ranking tool.
 initializeGraphicsDevice('benchmarking_first_rank_phenotype_frequencies_relative', width=7, height=8)
-par(mar=c(5.5,11.0,0.0,1.0))
+par(mar=c(5.5,11.5,0.0,1.0))
 barplot(prop.table(dataToPlot, 2), # excludes input phenotypes with only NA
         col=toolColors, las=1, cex.names=0.5, space=0, main="",
         xlab="phenotype input frequency", border="white", horiz=TRUE)
+title(ylab="phenotype", mgp=c(10,1,0))
 par(xpd=TRUE) # no clipping for drawing outside plot
 legend(-0.38,-1, colnames(phenotypeCountsWhenToolRankedFirst),
        fill=toolColors)
@@ -939,7 +976,10 @@ dataToPlot <- data.frame(hits=unlist(totalResults),
 hitPositionsScatterplot(dataToPlot[which(dataToPlot$tool != "geneNetwork"),],
                         'tools_position_totalHits_no_geneNetwork',
                         toolColors, 1000, 1000,
-                        "total hits", "absolute position")
+                        "total number of output genes",
+                        "absolute position of validation genes within the output genes",
+                        parMar=c(4.5,5.5,0.5,0.5),
+                        ylabMgp=c(4,1,0))
 
 # Transforms values to log10 for second plot.
 dataToPlot$hits <- log10(dataToPlot$hits)
@@ -949,7 +989,8 @@ dataToPlot$position <- log10(dataToPlot$position)
 hitPositionsScatterplot(dataToPlot,
                         'tools_position_totalHits_log10', 
                         toolColors, 1, 1, 
-                        "total hits (log10)", "absolute position (log10)")
+                        "total number of output genes (log10)",
+                        "absolute position of validation genes within the output genes (log10)")
 
 # Ensures dataToPlot cannot be used afterwards.
 rm(dataToPlot)
@@ -966,8 +1007,8 @@ dataToPlot <- log10(data.frame(vibe=positionResults$vibe,
 plotToolComaprison(dataToPlot,
                    'benchmark_positions_amelie_vibe_absolute',
                    max(dataToPlot, na.rm=TRUE),
-                   "absolute position in vibe (log10)",
-                   "absolute position in amelie (log10)")
+                   "absolute position of validation genes in vibe (log10)",
+                   "absolute position of validation genes in amelie output genes (log10)")
 
 # Plots vibe against amelie (relative).
 dataToPlot <- log10(data.frame(vibe=relativePositionResults$vibe,
@@ -976,8 +1017,8 @@ plotToolComaprison(dataToPlot,
                    'benchmark_positions_amelie_vibe_relative',
                    xyMin=floor(min(dataToPlot, na.rm=TRUE)),
                    xyMax=ceiling(max(dataToPlot, na.rm=TRUE)),
-                   "relative position in vibe (log10)",
-                   "relative position in amelie (log10)")
+                   "relative position of validation genes in vibe (log10)",
+                   "relative position of validation genes in amelie (log10)")
 
 
 
@@ -990,16 +1031,16 @@ plotToolComaprison(dataToPlot,
 # max positions from all genes found.
 plotMatchesFoundWihinRangeCutoff(genePercentageFoundWithinAbsoluteCutoff[1:5000,],
                                  'found_genes_for_absolute_cutoffs',
-                                 "absolute cutoff within total hits",
-                                 "fraction of genes found within cutoff",
+                                 "absolute cutoff from the output genes",
+                                 "fraction of patient cases for which the gene was found",
                                  toolColors, 500, addAbline=FALSE)
 
 # Shows how many hits were found when looking at a specific cutoff fractions
 # from all genes found.
 plotMatchesFoundWihinRangeCutoff(genePercentageFoundWithinRelativeCutoff,
                                  'found_genes_for_relative_cutoffs',
-                                 "relative cutoff within total hits",
-                                 "fraction of genes found within cutoff",
+                                 "relative cutoff from the output genes",
+                                 "fraction of patient cases for which the gene was found",
                                  toolColors, 0.1)
 
 
