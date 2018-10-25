@@ -608,6 +608,33 @@ ggplotLegend <- function(ggplot){
   return(legend)
 }
 
+########
+# Name:
+# toolScoresHistogramWithDensity
+#
+# Description:
+# Plots histograms
+#
+# Input:
+# data  - The data to be plotted. Should one-dimensional (no data frame).
+# fileName - Filename (excluding file extension) to be used for storage.
+# xlab  - The x-axis label.
+# xlim  - vector with two values describing the lower and upper bound for the
+#         x-axis.
+#
+# Output:
+# 
+########
+toolScoresHistogram <- function(data, fileName, xlab, xlim) {
+  initializeGraphicsDevice(fileName, width=10, height=6)
+  par(mar=c(5.5,5.5,0.5,0.5), mgp=c(4,1,0))
+  hist(data, main="", xlab=xlab, ylab="frequency", freq=F, las=1, breaks=20,
+       xlim=xlim, col="steelblue4")
+  lines(density(data, na.rm=T), col="red", lwd=2)
+  legend("topleft", "density curve", lty=1, col="red")
+  dev.off()
+}
+
 
 
 
@@ -648,6 +675,11 @@ phenotips <- sortRows(phenotips)
 vibe.gda_max <- sortRows(vibe.gda_max)
 vibe.dsi <- sortRows(vibe.dsi)
 vibe.dpi <- sortRows(vibe.dpi)
+
+# Loads in best score per tool.
+toolGeneScores <- read.table(paste0(baseDir, "tool_gene_scores.tsv"),
+                             header=T, sep="\t")
+toolGeneScores <- toolGeneScores[,3:5]
 
 
 
@@ -775,8 +807,6 @@ genePercentageFoundWithinRelativeCutoff <- genesFoundWithinRelativeCutoff / nrow
 
 # Removes variable so that it cannot accidentally be used later on.
 rm(cutoffRanges)
-
-
 
 
 
@@ -1138,3 +1168,13 @@ dev.off()
 #          ylab="patient cases",
 #          showticklabels=c(TRUE, FALSE),
 #          file=paste0(imgExportDir, 'heatmap_relative_positions_heatmaply.png'))
+
+
+
+###
+### Density plot of z-scores.
+###
+
+toolScoresHistogram(toolGeneScores$amelie, "density_amelie", "AMELIE score", c(0,100))
+toolScoresHistogram(toolGeneScores$geneNetwork, "density_geneNetwork", "z-score", c(-5,20))
+toolScoresHistogram(toolGeneScores$vibe, "density_vibe", "gda_max score", c(0,1))
