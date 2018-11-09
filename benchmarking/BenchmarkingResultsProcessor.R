@@ -367,7 +367,7 @@ benchmarkQuintupleVenn <- function(data, outside, fileName, colors) {
                          fontfamily="Helvetica", main.fontfamily="Helvetica",
                          sub.fontfamily="Helvetica", cat.fontfamily="Helvetica",
                          fill=colors, cat.just=list(c(0.5,1),
-                                                    c(-0.5,-6),
+                                                    c(-0.5,-4),
                                                     c(0,0),
                                                     c(1,1),
                                                     c(3.5,-5))
@@ -621,17 +621,18 @@ ggplotLegend <- function(ggplot){
 # xlab  - The x-axis label.
 # xlim  - vector with two values describing the lower and upper bound for the
 #         x-axis.
+# ylimMax - The max y-axis value.
 #
 # Output:
 # 
 ########
-toolScoresHistogram <- function(data, fileName, xlab, xlim) {
-  initializeGraphicsDevice(fileName, width=10, height=6)
+toolScoresHistogram <- function(data, fileName, xlab, xlim, ylimMax) {
+  initializeGraphicsDevice(fileName, width=10, height=5)
   par(mar=c(5.5,5.5,0.5,0.5), mgp=c(4,1,0))
-  hist(data, main="", xlab=xlab, ylab="frequency", freq=F, las=1, breaks=20,
-       xlim=xlim, col="steelblue4")
+  hist(data, main="", xlab=xlab, ylab="probability density", freq=F, las=1, breaks=20,
+       xlim=xlim, ylim=c(0,ylimMax), col="steelblue4")
   lines(density(data, na.rm=T), col="red", lwd=2)
-  legend("topleft", "density curve", lty=1, col="red")
+  legend(xlim[1], ylimMax, "density curve", lty=1, col="red")
   dev.off()
 }
 
@@ -658,7 +659,7 @@ benchmarkData <- read.table(paste0(baseDir,"benchmark_data.tsv"), header=T,
                                                   "factor", "character"))
 
 amelie <- readResultFile("results/amelie.tsv")
-geneNetwork <- readResultFile("results/gene_network.tsv")
+gado <- readResultFile("results/gene_network.tsv")
 phenomizer <- readResultFile("results/phenomizer.tsv")
 phenotips <- readResultFile("results/phenotips.tsv")
 
@@ -668,7 +669,7 @@ vibe.dpi <- readResultFile("results/vibe_2018-07-06_dpi.tsv")
 
 # Sorts benchmark results so that row order is identical.
 amelie <- sortRows(amelie)
-geneNetwork <- sortRows(geneNetwork)
+gado <- sortRows(gado)
 phenomizer <- sortRows(phenomizer)
 phenotips <- sortRows(phenotips)
 
@@ -712,14 +713,14 @@ vibe <- vibe.gda_max
 # Calculate absolute positions. This is done by processing benchmarkData row-by-row
 # and therefore the LOVD row order of positionResults is equal to that of benchmarkData.
 positionResults <- data.frame(amelie=resultsPositionCalculator(benchmarkData, amelie),
-                              geneNetwork=resultsPositionCalculator(benchmarkData, geneNetwork),
+                              gado=resultsPositionCalculator(benchmarkData, gado),
                               phenomizer=resultsPositionCalculator(benchmarkData, phenomizer),
                               phenotips=resultsPositionCalculator(benchmarkData, phenotips),
                               vibe=resultsPositionCalculator(benchmarkData, vibe))
 
 # Calculate total number of genes.
 totalResults <- data.frame(amelie=calculateTotalGenesFound(amelie),
-                           geneNetwork=calculateTotalGenesFound(geneNetwork),
+                           gado=calculateTotalGenesFound(gado),
                            phenomizer=calculateTotalGenesFound(phenomizer),
                            phenotips=calculateTotalGenesFound(phenotips),
                            vibe=calculateTotalGenesFound(vibe),
@@ -743,7 +744,7 @@ allPhenotypeNames <- sort(unique(unlist(sapply(benchmarkData[,5], strsplit, ";")
 # This specific dataframe is focused on counting the phenotypes for when a tool
 # ranked first among all tools.
 phenotypeCountsWhenToolRankedFirst <- data.frame(amelie=rep(0,length(allPhenotypeNames)),
-                                                 geneNetwork=rep(0,length(allPhenotypeNames)),
+                                                 gado=rep(0,length(allPhenotypeNames)),
                                                  phenomizer=rep(0,length(allPhenotypeNames)),
                                                  phenotips=rep(0,length(allPhenotypeNames)),
                                                  vibe=rep(0,length(allPhenotypeNames)),
@@ -815,8 +816,8 @@ rm(cutoffRanges)
 ###
 
 # Check whether the rows of all benchmarks are identically ordered.
-rownames(amelie) == rownames(geneNetwork) &&
-  rownames(geneNetwork) == rownames(phenomizer) &&
+rownames(amelie) == rownames(gado) &&
+  rownames(gado) == rownames(phenomizer) &&
   rownames(phenomizer) == rownames(phenotips) &&
   rownames(phenotips) == rownames(vibe)
 
@@ -1002,9 +1003,9 @@ dataToPlot <- data.frame(hits=unlist(totalResults),
                          position=unlist(positionResults),
                          tool=as.factor(sort(rep(colnames(totalResults), nrow(totalResults)))))
 
-# Plots hits compared to total positions without geneNetwork.
-hitPositionsScatterplot(dataToPlot[which(dataToPlot$tool != "geneNetwork"),],
-                        'tools_position_totalHits_no_geneNetwork',
+# Plots hits compared to total positions without gado
+hitPositionsScatterplot(dataToPlot[which(dataToPlot$tool != "gado"),],
+                        'tools_position_totalHits_no_gado',
                         toolColors, 1000, 1000,
                         "total number of output genes",
                         "absolute position of validation genes within the output genes",
@@ -1015,7 +1016,7 @@ hitPositionsScatterplot(dataToPlot[which(dataToPlot$tool != "geneNetwork"),],
 dataToPlot$hits <- log10(dataToPlot$hits)
 dataToPlot$position <- log10(dataToPlot$position)
 
-# Plots hits compared to total positions with geneNetwork (log10 transformed).
+# Plots hits compared to total positions with gado (log10 transformed).
 hitPositionsScatterplot(dataToPlot,
                         'tools_position_totalHits_log10', 
                         toolColors, 1, 1, 
@@ -1175,6 +1176,6 @@ dev.off()
 ### Density plot of z-scores.
 ###
 
-toolScoresHistogram(toolGeneScores$amelie, "density_amelie", "AMELIE score", c(0,100))
-toolScoresHistogram(toolGeneScores$geneNetwork, "density_geneNetwork", "z-score", c(-5,20))
-toolScoresHistogram(toolGeneScores$vibe, "density_vibe", "gda_max score", c(0,1))
+toolScoresHistogram(toolGeneScores$amelie, "density_amelie", "AMELIE score", c(0,100), 0.04)
+toolScoresHistogram(toolGeneScores$gado, "density_gado", "z-score", c(-5,20), 0.25)
+toolScoresHistogram(toolGeneScores$vibe, "density_vibe", "gda_max score", c(0,1), 4)

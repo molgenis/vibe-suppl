@@ -327,7 +327,7 @@ dataToPlot <- c(all=length(unique(geneAssociationsPmid$geneId)),
                 phenotype=length(unique(genePhenotypeAssociationsPmid$geneId)))
 
 ylimTop <- ceiling(max(dataToPlot/1000))
-postscript(paste0(imgExportDir, 'unique_genes.eps'), width=5, height=5)
+postscript(paste0(imgExportDir, 'unique_genes.eps'), width=5, height=4)
 barplot(dataToPlot/1000, ylim=c(0,20), las=1,
         ylab='number of unique genes (x1000)', col="steelblue4")
 dev.off()
