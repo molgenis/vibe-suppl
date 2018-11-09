@@ -100,7 +100,7 @@ def generateFileWithScores(args, genesForIds):
     fileWriter = open(args.outfile, 'w')
 
     # Writes the header to the file.
-    fileWriter.write("lovd\tgene\tamelie\tgeneNetwork\tvibe\n")
+    fileWriter.write("lovd\tgene\tamelie\tgado\tvibe\n")
 
     # Goes through all the patient/case IDs and for each of these goes through all genes.
     for id in genesForIds.keys():
