@@ -192,10 +192,10 @@ plotAssociationsPerSourceAndLevel <- function(plotTitle, sourceData, levelData,
                                    border=NA, startpos = pi/2, col=levelColors)
   
   # Creates readable slice size numbers.
-  outerLabelValues <- format(sourceData$countTotal, big.mark = '.',
-                             decimal.mark=',', trim=T)
-  innerLabelValues <- format(levelData$countTotal, big.mark = '.',
-                             decimal.mark=',', trim=T)
+  outerLabelValues <- format(sourceData$countTotal, big.mark = ',',
+                             decimal.mark='.', trim=T)
+  innerLabelValues <- format(levelData$countTotal, big.mark = ',',
+                             decimal.mark='.', trim=T)
   
   # Optional angle adjustments.
   outerAngleValues[outerAngles] <- outerAngleValues[outerAngles] + outerAngleAdjust
@@ -212,8 +212,8 @@ plotAssociationsPerSourceAndLevel <- function(plotTitle, sourceData, levelData,
   legend(0.8,0.9, levelData$level[levelData$countTotal > 0], fill=levelColors, bty = "n")
   
   # Calculates, formats and adds total to the pie chart.
-  total <- format(sum(sourceData$countTotal), big.mark = '.',
-                  decimal.mark=',', trim=T)
+  total <- format(sum(sourceData$countTotal), big.mark = ',',
+                  decimal.mark='.', trim=T)
   mtext(paste('Total:', total), side=1, at=-0.6)
   par(oldPar)
 }
