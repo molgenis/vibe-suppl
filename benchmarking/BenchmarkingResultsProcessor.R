@@ -289,11 +289,13 @@ toolValuesBoxPlot <- function(data, fileName, firstYValue, yAxisFreq,
   
   yAxisMax <- ceiling(max(data, na.rm=T)/yAxisFreq)*yAxisFreq
   boxplot(data, ylim=c(firstYValue,yAxisMax), xaxt='n',yaxt='n', pch="")
-  abline(h=seq(yAxisAblineFreq+firstYValue, yAxisMax, yAxisAblineFreq), col="gray92")
+  abline(h=seq(firstYValue, yAxisMax+firstYValue, yAxisAblineFreq), col="gray85")
   boxplot(data, las=1, pch=20, yaxt='n',
           main=main, xlab="tool", ylab="", col="white", add=T)
   title(ylab=ylab, mgp=ylabMgp)
-  axis(2, las=1, at=seq(yAxisFreq+firstYValue, yAxisMax,yAxisFreq))
+  axis(2, las=1, at=seq(firstYValue, yAxisMax+firstYValue, yAxisFreq),
+       labels=format(seq(firstYValue, yAxisMax+firstYValue, yAxisFreq),
+                     big.mark=","))
   
   dev.off()
 }
@@ -367,7 +369,7 @@ benchmarkQuintupleVenn <- function(data, outside, fileName, colors) {
                          fontfamily="Helvetica", main.fontfamily="Helvetica",
                          sub.fontfamily="Helvetica", cat.fontfamily="Helvetica",
                          fill=colors, cat.just=list(c(0.5,1),
-                                                    c(-0.5,-6),
+                                                    c(-0.5,-4),
                                                     c(0,0),
                                                     c(1,1),
                                                     c(3.5,-5))
@@ -392,8 +394,10 @@ benchmarkQuintupleVenn <- function(data, outside, fileName, colors) {
 # fileName - Filename (excluding file extension) to be used for storage.
 # colors - The colors to be used within the plot (each group gets a different
 #          color)
-# xAxisFreq - The frequency of x-axis lines.
-# yAxisFreq - The frequency of y-axis lines.
+# xAxisFreq - The frequency for the x-axis labels.
+# xAxisAblineFreq - The frequency of x-axis lines.
+# yAxisFreq - The frequency for the y-axis labels.
+# yAxisAblineFreq - The frequency of y-axis lines.
 # xlab - The x-axis label.
 # ylab - The y-axis label.
 # parMar - the margin of the graphical parameters. DEFAULT=c(4.5,4.5,0.5,0.5)
@@ -403,7 +407,8 @@ benchmarkQuintupleVenn <- function(data, outside, fileName, colors) {
 # Output:
 #
 ########
-hitPositionsScatterplot <- function(data, fileName, colors, xAxisFreq, yAxisFreq,
+hitPositionsScatterplot <- function(data, fileName, colors, xAxisFreq,
+                                    xAxisAblineFreq, yAxisFreq, yAxisAblineFreq,
                                     xlab, ylab, parMar=c(4.5,4.5,0.5,0.5),
                                     ylabMgp=c(3,1,0)) {
   # Renames colnames for universal usage.
@@ -423,8 +428,8 @@ hitPositionsScatterplot <- function(data, fileName, colors, xAxisFreq, yAxisFreq
   data[,3] <- droplevels(data[,3])
 
   # Calculates highest x & y value.
-  xAxisMax <- ceiling(max(data[,1])/xAxisFreq)*xAxisFreq
-  yAxisMax <- ceiling(max(data[,2])/yAxisFreq)*yAxisFreq
+  xAxisMax <- ceiling(max(data[,1])/xAxisAblineFreq)*xAxisAblineFreq
+  yAxisMax <- ceiling(max(data[,2])/yAxisAblineFreq)*yAxisAblineFreq
   
   # Recurring usage.
   toolNames <- levels(data[,3])
@@ -436,11 +441,18 @@ hitPositionsScatterplot <- function(data, fileName, colors, xAxisFreq, yAxisFreq
   plot(1, las=1, type="n", bty="u",
        xlab=xlab,
        ylab="",
+       xaxt="n",
+       yaxt="n",
        xlim=c(0, xAxisMax),
        ylim=c(0, yAxisMax))
+  axis(1, las=1, at=seq(0, xAxisMax, xAxisFreq),
+       labels=format(seq(0, xAxisMax, xAxisFreq), big.mark=","))
+  axis(2, las=1, at=seq(0, yAxisMax, yAxisFreq),
+       labels=format(seq(0, yAxisMax, yAxisFreq), big.mark=","))
   title(ylab=ylab, mgp=ylabMgp)
-  abline(h=seq(0,yAxisMax, yAxisFreq), v=seq(0,xAxisMax, xAxisFreq), col="grey92")
-  abline(0,1, col="grey92") # indicates where position limit is (position <= hits)
+  abline(h=seq(0,yAxisMax, yAxisAblineFreq),
+         v=seq(0,xAxisMax, xAxisAblineFreq), col="gray85")
+  abline(0,1, col="gray85") # indicates where position limit is (position <= hits)
   legend("topleft", c(toolNames, "combined", "patient case",
                         "mean", "linear model"),
          col=c(colors, "red", rep("black", 3)),
@@ -517,7 +529,7 @@ plotToolComaprison <- function(data, fileName, xyMax, xlab, ylab, xyMin=0,
   plot(data[,1], data[,2], las=1, pch=20,
        xlim=c(xyMin,xyMax), ylim=c(xyMin,xyMax), xlab=xlab, ylab=ylab,
        # Makes sure grid & legend are drawn before the data.
-       panel.first=c(grid(col="gray92", lty=1),
+       panel.first=c(grid(col="gray85", lty=1),
                      legend("topleft",
                             c("patient case", "mean", "Y=X", "linear model"),
                             pch=c(20, 20, NA, NA),
@@ -574,7 +586,7 @@ plotMatchesFoundWihinRangeCutoff <- function(data, fileName, xlab, ylab, colors,
   axis(2, at=seq(0,1,0.1), las=1)
   
   # Adds abline if requested.
-  if(addAbline) {abline(0,1)}
+  if(addAbline) {abline(0,1, col="gray70")}
   
   # Adds data lines.
   for(x in 1:ncol(data)) {
@@ -582,7 +594,14 @@ plotMatchesFoundWihinRangeCutoff <- function(data, fileName, xlab, ylab, colors,
   }
   
   # Adds legend.
-  legend("bottomright",1, colnames(data), fill=colors)
+  if(addAbline) {
+    legend("bottomright", c(colnames(data), "Y=X"),
+           pch=c(rep(15, length(colnames(data))), NA),
+           lty=c(rep(NA, length(colnames(data))), 1),
+           col=c(colors, "gray70"))
+  } else {
+    legend("bottomright", colnames(data), pch=15, col=colors)
+  }
   
   dev.off()
 }
@@ -608,6 +627,34 @@ ggplotLegend <- function(ggplot){
   return(legend)
 }
 
+########
+# Name:
+# toolScoresHistogramWithDensity
+#
+# Description:
+# Plots histograms
+#
+# Input:
+# data  - The data to be plotted. Should one-dimensional (no data frame).
+# fileName - Filename (excluding file extension) to be used for storage.
+# xlab  - The x-axis label.
+# xlim  - vector with two values describing the lower and upper bound for the
+#         x-axis.
+# ylimMax - The max y-axis value.
+#
+# Output:
+# 
+########
+toolScoresHistogram <- function(data, fileName, xlab, xlim, ylimMax) {
+  initializeGraphicsDevice(fileName, width=10, height=5)
+  par(mar=c(5.5,5.5,0.5,0.5), mgp=c(4,1,0))
+  hist(data, main="", xlab=xlab, ylab="probability density", freq=F, las=1, breaks=20,
+       xlim=xlim, ylim=c(0,ylimMax), col="steelblue4")
+  lines(density(data, na.rm=T), col="red", lwd=2)
+  legend(xlim[1], ylimMax, "density curve", lty=1, col="red")
+  dev.off()
+}
+
 
 
 
@@ -631,7 +678,7 @@ benchmarkData <- read.table(paste0(baseDir,"benchmark_data.tsv"), header=T,
                                                   "factor", "character"))
 
 amelie <- readResultFile("results/amelie.tsv")
-geneNetwork <- readResultFile("results/gene_network.tsv")
+gado <- readResultFile("results/gene_network.tsv")
 phenomizer <- readResultFile("results/phenomizer.tsv")
 phenotips <- readResultFile("results/phenotips.tsv")
 
@@ -641,13 +688,18 @@ vibe.dpi <- readResultFile("results/vibe_2018-07-06_dpi.tsv")
 
 # Sorts benchmark results so that row order is identical.
 amelie <- sortRows(amelie)
-geneNetwork <- sortRows(geneNetwork)
+gado <- sortRows(gado)
 phenomizer <- sortRows(phenomizer)
 phenotips <- sortRows(phenotips)
 
 vibe.gda_max <- sortRows(vibe.gda_max)
 vibe.dsi <- sortRows(vibe.dsi)
 vibe.dpi <- sortRows(vibe.dpi)
+
+# Loads in best score per tool.
+toolGeneScores <- read.table(paste0(baseDir, "tool_gene_scores.tsv"),
+                             header=T, sep="\t")
+toolGeneScores <- toolGeneScores[,3:5]
 
 
 
@@ -680,14 +732,14 @@ vibe <- vibe.gda_max
 # Calculate absolute positions. This is done by processing benchmarkData row-by-row
 # and therefore the LOVD row order of positionResults is equal to that of benchmarkData.
 positionResults <- data.frame(amelie=resultsPositionCalculator(benchmarkData, amelie),
-                              geneNetwork=resultsPositionCalculator(benchmarkData, geneNetwork),
+                              gado=resultsPositionCalculator(benchmarkData, gado),
                               phenomizer=resultsPositionCalculator(benchmarkData, phenomizer),
                               phenotips=resultsPositionCalculator(benchmarkData, phenotips),
                               vibe=resultsPositionCalculator(benchmarkData, vibe))
 
 # Calculate total number of genes.
 totalResults <- data.frame(amelie=calculateTotalGenesFound(amelie),
-                           geneNetwork=calculateTotalGenesFound(geneNetwork),
+                           gado=calculateTotalGenesFound(gado),
                            phenomizer=calculateTotalGenesFound(phenomizer),
                            phenotips=calculateTotalGenesFound(phenotips),
                            vibe=calculateTotalGenesFound(vibe),
@@ -711,7 +763,7 @@ allPhenotypeNames <- sort(unique(unlist(sapply(benchmarkData[,5], strsplit, ";")
 # This specific dataframe is focused on counting the phenotypes for when a tool
 # ranked first among all tools.
 phenotypeCountsWhenToolRankedFirst <- data.frame(amelie=rep(0,length(allPhenotypeNames)),
-                                                 geneNetwork=rep(0,length(allPhenotypeNames)),
+                                                 gado=rep(0,length(allPhenotypeNames)),
                                                  phenomizer=rep(0,length(allPhenotypeNames)),
                                                  phenotips=rep(0,length(allPhenotypeNames)),
                                                  vibe=rep(0,length(allPhenotypeNames)),
@@ -778,15 +830,13 @@ rm(cutoffRanges)
 
 
 
-
-
 ###
 ### Data info.
 ###
 
 # Check whether the rows of all benchmarks are identically ordered.
-rownames(amelie) == rownames(geneNetwork) &&
-  rownames(geneNetwork) == rownames(phenomizer) &&
+rownames(amelie) == rownames(gado) &&
+  rownames(gado) == rownames(phenomizer) &&
   rownames(phenomizer) == rownames(phenotips) &&
   rownames(phenotips) == rownames(vibe)
 
@@ -815,7 +865,7 @@ naExceptPhenomizerOnly <- cbind(benchmarkData[rownames(naExceptPhenomizerOnly),
 
 toolValuesBoxPlot(positionResults.vibe,
                   'benchmarking_gene_position_vibe_absolute',
-                  1, 500, 500,
+                  1, 1000, 500,
                   "",
                   "absolute position of validation genes within the output genes",
                   parMar=c(4.5,5.5,0.5,0.5), ylabMgp=c(4,1,0))
@@ -847,7 +897,7 @@ toolValuesBoxPlot(log10(totalResults),
 # Boxplot comparing relative positions of genes (absolute position / number of suggested genes found).
 toolValuesBoxPlot(relativePositionResults,
                   'benchmarking_gene_position_relative',
-                  0.0, 0.2, 0.05,
+                  0.0, 0.2, 0.1,
                   "",
                   "relative position of validation genes within the output genes")
 
@@ -936,8 +986,8 @@ dataYMax <- ceiling(max(apply(dataToPlot, 2, sum))/100)*100+2
 initializeGraphicsDevice('benchmarking_first_rank_phenotype_frequencies', width=7, height=8)
 par(mar=c(4.5,11.5,0.5,0.5))
 barplot(dataToPlot, xaxt='n', yaxt='n', space=0, xlim=c(0,dataYMax), horiz=TRUE)
-abline(v=seq(0, dataYMax, 5), col="gray92")
-abline(v=seq(0, dataYMax, 20), col="gray72")
+abline(v=seq(0, dataYMax, 5), col="gray85")
+abline(v=seq(0, dataYMax, 20), col="gray70")
 barplot(dataToPlot, # excludes input phenotypes with only NA
         col=toolColors, las=1, cex.names=0.5, space=0, xlim=c(0,dataYMax),
         main="", xlab="phenotype input frequency", add=TRUE, horiz=TRUE)
@@ -972,10 +1022,10 @@ dataToPlot <- data.frame(hits=unlist(totalResults),
                          position=unlist(positionResults),
                          tool=as.factor(sort(rep(colnames(totalResults), nrow(totalResults)))))
 
-# Plots hits compared to total positions without geneNetwork.
-hitPositionsScatterplot(dataToPlot[which(dataToPlot$tool != "geneNetwork"),],
-                        'tools_position_totalHits_no_geneNetwork',
-                        toolColors, 1000, 1000,
+# Plots hits compared to total positions without gado
+hitPositionsScatterplot(dataToPlot[which(dataToPlot$tool != "gado"),],
+                        'tools_position_totalHits_no_gado',
+                        toolColors, 5000, 1000, 2000, 1000,
                         "total number of output genes",
                         "absolute position of validation genes within the output genes",
                         parMar=c(4.5,5.5,0.5,0.5),
@@ -985,10 +1035,10 @@ hitPositionsScatterplot(dataToPlot[which(dataToPlot$tool != "geneNetwork"),],
 dataToPlot$hits <- log10(dataToPlot$hits)
 dataToPlot$position <- log10(dataToPlot$position)
 
-# Plots hits compared to total positions with geneNetwork (log10 transformed).
+# Plots hits compared to total positions with gado (log10 transformed).
 hitPositionsScatterplot(dataToPlot,
                         'tools_position_totalHits_log10', 
-                        toolColors, 1, 1, 
+                        toolColors, 1, 1, 1, 1,
                         "total number of output genes (log10)",
                         "absolute position of validation genes within the output genes (log10)")
 
@@ -1056,15 +1106,19 @@ dataToPlot[is.na(dataToPlot)] <- naValue
 xClust <- hclust(dist(t(dataToPlot), method = "euclidean"), method="complete")
 yClust <- hclust(dist(dataToPlot, method = "euclidean"), method="complete")
 
-# y values are reversed as the y-positions count from bottom to top while
-# ggdendrogram(yClust, rotate=T) displays the values from top to bottom.
-dataToPlot <- dataToPlot[rev(yClust$order),xClust$order] 
-
 # Prepares data for heatmap.
-dataToPlot <- melt(dataToPlot, id.vars=0,
+dataToPlot <- cbind(id=rownames(dataToPlot), dataToPlot)
+dataToPlot <- melt(dataToPlot, id.vars="id",
                    variable.name="tool",
                    value.name="relativePosition")
-dataToPlot <- cbind(y=1:nrow(relativePositionResults), dataToPlot)
+
+# Orders data based on clustering.
+dataToPlot$id <- factor(dataToPlot$id,
+                        levels = dataToPlot$id[yClust$order],
+                        ordered = TRUE)
+dataToPlot$tool <- factor(dataToPlot$tool,
+                        levels = levels(dataToPlot$tool)[xClust$order],
+                        ordered = TRUE)
 
 # Theme for dendrograms.
 dendroTheme <- theme(axis.title.x=element_blank(),
@@ -1072,14 +1126,14 @@ dendroTheme <- theme(axis.title.x=element_blank(),
                      axis.text.x=element_blank(),
                      axis.text.y=element_blank())
 
-# Tool dendogram.
+# Tool dendogram. Remove "+ dendroTheme" for comparing values with hmPlot.
 xClustPlot <- ggdendrogram(xClust) + dendroTheme
 
-# Patient cases dendogram.
+# Patient cases dendogram. Remove "+ dendroTheme" for comparing values with hmPlot.
 yClustPlot <- ggdendrogram(yClust, rotate=T) + dendroTheme
 
 # Heatmap.
-hmPlot <- ggplot(dataToPlot, aes(x=tool, y=y, colour="")) + # colour is to trick ggplot for "not found" in legend
+hmPlot <- ggplot(dataToPlot, aes(x=tool, y=id, colour="")) + # colour is to trick ggplot for "not found" in legend
   theme_bw() +
   theme(legend.box="horizontal",
         legend.box.spacing=unit(0, "cm"),
@@ -1090,7 +1144,7 @@ hmPlot <- ggplot(dataToPlot, aes(x=tool, y=y, colour="")) + # colour is to trick
         panel.border=element_blank(),
         axis.text.x=element_text(margin=margin(b=5)),
         axis.ticks.x=element_blank(),
-        axis.text.y=element_blank(),
+        axis.text.y=element_blank(), # Can be commented to compare with yClustPlot
         axis.ticks.y=element_blank()) +
   labs(y="patient cases",
        fill="relative position",
@@ -1098,7 +1152,7 @@ hmPlot <- ggplot(dataToPlot, aes(x=tool, y=y, colour="")) + # colour is to trick
   geom_tile(aes(fill=relativePosition)) +
   scale_fill_viridis(direction=-1, option="C", na.value="black",
                      limits = c(0,1)) + # excludes the NA value (which is > 1)
-  scale_colour_manual(values=NA, labels = naValue) + # makes sure aes colour is not visible
+  scale_colour_manual(values=NA, labels = "2.00") + # makes sure aes colour is not visible
   scale_y_discrete(expand=c(0,0)) # moves x labels closer
 
 # Filter legend from heatmap and generate plot from it.
@@ -1138,3 +1192,13 @@ dev.off()
 #          ylab="patient cases",
 #          showticklabels=c(TRUE, FALSE),
 #          file=paste0(imgExportDir, 'heatmap_relative_positions_heatmaply.png'))
+
+
+
+###
+### Density plot of z-scores.
+###
+
+toolScoresHistogram(toolGeneScores$amelie, "density_amelie", "AMELIE score", c(0,100), 0.04)
+toolScoresHistogram(toolGeneScores$gado, "density_gado", "z-score", c(-5,20), 0.25)
+toolScoresHistogram(toolGeneScores$vibe, "density_vibe", "gda_max score", c(0,1), 4)
