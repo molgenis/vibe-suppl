@@ -586,7 +586,7 @@ plotMatchesFoundWihinRangeCutoff <- function(data, fileName, xlab, ylab, colors,
   axis(2, at=seq(0,1,0.1), las=1)
   
   # Adds abline if requested.
-  if(addAbline) {abline(0,1, col="gray70")}
+  if(addAbline) {abline(0,1, col="gray50")}
   
   # Adds data lines.
   for(x in 1:ncol(data)) {
@@ -598,7 +598,7 @@ plotMatchesFoundWihinRangeCutoff <- function(data, fileName, xlab, ylab, colors,
     legend("bottomright", c(colnames(data), "Y=X"),
            pch=c(rep(15, length(colnames(data))), NA),
            lty=c(rep(NA, length(colnames(data))), 1),
-           col=c(colors, "gray70"))
+           col=c(colors, "gray50"))
   } else {
     legend("bottomright", colnames(data), pch=15, col=colors)
   }
@@ -1200,5 +1200,5 @@ dev.off()
 ###
 
 toolScoresHistogram(toolGeneScores$amelie, "density_amelie", "AMELIE score", c(0,100), 0.04)
-toolScoresHistogram(toolGeneScores$gado, "density_gado", "z-score", c(-5,20), 0.25)
+toolScoresHistogram(toolGeneScores$gado, "density_gado", "z-score", c(-5.5,20), 0.25)
 toolScoresHistogram(toolGeneScores$vibe, "density_vibe", "gda_max score", c(0,1), 4)

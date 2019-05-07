@@ -410,7 +410,7 @@ xLim <- 200
 barplot(log10(associationCounts[1:xLim]), ylim=c(0,6),
         border=NA, col=barColors[2], space=0, las=1,
         xlab='number of references',
-        ylab='number of unique gene-disease references (log10)')
+        ylab='number of gene-disease associations (log10)')
 barplot(log10(associationCountsWithoutBefree[1:xLim]), ylim=c(0,6), border=NA,
         col=barColors[1], space=0, las=1, add=T, yaxt='n')
 xLabels <- c(1,seq(20,xLim,20))
@@ -423,7 +423,7 @@ dataToPlotWithBefree <- log10(mergeValues(associationCounts,200))
 dataToPlotWithoutBefree <- log10(mergeValues(associationCountsWithoutBefree,200))
 x <- barplot(dataToPlotWithBefree, ylim=c(0,6),
         border=NA, col=barColors[2], las=1, xaxt='n',
-        ylab='number of unique gene-disease references (log10)')
+        ylab='number of gene-disease associations (log10)')
 barplot(dataToPlotWithoutBefree, ylim=c(0,6), border=NA,
         col=barColors[1], las=1, add=T, yaxt='n', xaxt='n')
 text(cex=1, x=x+0.5, y=-0.25, names(dataToPlotWithBefree), xpd=TRUE, srt=45, pos=2)
