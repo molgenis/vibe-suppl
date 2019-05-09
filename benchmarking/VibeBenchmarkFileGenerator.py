@@ -136,7 +136,7 @@ def processFileWithoutSort(fileWriter, filePath):
             continue
         if i > 1:
             fileWriter.write(',')
-        fileWriter.write(line.split("\t")[0])
+        fileWriter.write(line.strip().split("\t")[0])
 
 
 if __name__ == '__main__':
