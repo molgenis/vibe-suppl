@@ -28,7 +28,7 @@ def fileMergerParser():
 
     # The possible options for args.sort stored in a dictionary.
     sortMethods = {'gda_max': processVibeFileSortByGdaMax, 'dsi': processVibeFileSortByDsi,
-                   'dpi': processVibeFileSortByDpi}
+                   'dpi': processVibeFileSortByDpi, 'none' : processFileWithoutSort}
 
     # Defines command line.
     parser = ArgumentParser()
@@ -121,6 +121,22 @@ def processVibeFile(fileWriter, filePath, sortColumn, reverseOrder):
 
     # Sorts the output on the gene values (score) and writes this to the output file.
     fileWriter.write(','.join(sorted(geneScores, key=geneScores.get, reverse=reverseOrder)))
+
+
+def processFileWithoutSort(fileWriter, filePath):
+    """
+        Processes a single output file from the vibe benchmark without doing any sorting.
+        :param fileWriter: the file to write the output to
+        :param filePath: the path to the file to be processed
+        :return:
+        """
+    for i, line in enumerate(open(filePath)):
+        # Skips header line.
+        if i == 0:
+            continue
+        if i > 1:
+            fileWriter.write(',')
+        fileWriter.write(line.split("\t")[0])
 
 
 if __name__ == '__main__':
