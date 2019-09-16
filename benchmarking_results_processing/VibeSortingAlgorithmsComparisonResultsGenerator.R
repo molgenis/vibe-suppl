@@ -89,4 +89,4 @@ toolRankingBarplot(t(vibeAlgorithmsRankingCounts),
 ###
 ### Removes any script-sepcific variables.
 ###
-rm(imgExportDir)
+rm(imgExportDir, vibe.gda_max, vibe.dsi, vibe.dpi, positionResults.vibe, vibeAlgorithmsRankingCounts)
