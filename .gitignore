@@ -31,3 +31,6 @@ hs_err_pid*
 # Python
 *.pyc
 __pychache__/
+
+# R
+.Rhistory

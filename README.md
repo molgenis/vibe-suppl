@@ -19,6 +19,11 @@ such as for vibe where there is a `ParallelBashScriptsGenerator` instead. So ple
     per request, a sort on all genes is done prior to file writing.
 * __`AmelieBenchmarkRunner.py`__
     * __Info:__ Converts the output from `AmelieApiOutputGenerator.py` for usage in `BenchmarkResultsProcessor.R`.
+* __`BenchmarkFileHpoConverter.py`__
+    * __Info:__ A script to convert a benchmark file containing HPO names in the fifth column to a benchmark file with
+     HPO codes in the fifth column. Should not be needed for running existing benchmarks, but is supplied as a
+     convenience script in case benchmarks are created that cannot use `BenchmarkGenerics.py` but do need HPO codes as
+     input. 
 * __`BenchmarkGenerics.py`__
     * __Info:__ Contains methods used in multiple scripts.
     * __Important:__ This script should not be ran independently. If Python scripts are moved (for example to a server
