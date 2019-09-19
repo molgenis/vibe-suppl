@@ -40,19 +40,19 @@ setwd(oldWd)
 imgExportDir <- paste0(baseImgExportDir, "vibe_adjustments/")
 
 # Defines color palette.
-adjustmentColors <- brewer.pal(3, 'Set2') # Adjust if changing number of tools!!!
+adjustmentColors <- brewer.pal(4, 'Set2') # Adjust if changing number of tools!!!
 
 # Load data.
-vibe.v5.simple <- readResultFile("results/vibe_2019-09-15.tsv")
-vibe.v5.pda <- readResultFile("results/vibe_2018-07-06_gda_max.tsv")
-#vibe.v6.simple <- readResultFile("results/vibe_2018-07-06_dpi.tsv")
-#vibe.v6.pda
+vibe.v5.simple <- readResultFile("results/vibe_2019-09-15_none.tsv")
+vibe.v5.pda <- readResultFile("results/vibe_2018-07-06_none.tsv")
+vibe.v6.simple <- readResultFile("results/vibe_2019-09-19_v6-simple_none.tsv")
+vibe.v6.pda <- readResultFile("results/vibe_2019-09-19_v6-old_none.tsv")
 
 # Sorts benchmark results so that row order is identical.
 vibe.v5.simple <- sortRows(vibe.v5.simple)
 vibe.v5.pda <- sortRows(vibe.v5.pda)
-#vibe.v6.simple <- sortRows(vibe.v6.simple)
-#vibe.v6.pda <- sortRows(vibe.v6.pda)
+vibe.v6.simple <- sortRows(vibe.v6.simple)
+vibe.v6.pda <- sortRows(vibe.v6.pda)
 
 
 
@@ -63,15 +63,15 @@ vibe.v5.pda <- sortRows(vibe.v5.pda)
 # Calculate absolute positions. This is done by processing benchmarkData row-by-row
 # and therefore the LOVD row order of positionResults is equal to that of benchmarkData.
 positionResults <- data.frame(vibe.v5.simple=resultsPositionCalculator(benchmarkData, vibe.v5.simple),
-                              vibe.v5.pda=resultsPositionCalculator(benchmarkData, vibe.v5.pda))
-                              #vibe.v6.simple=resultsPositionCalculator(benchmarkData, vibe.v6.simple),
-                              #vibe.v6.pda=resultsPositionCalculator(benchmarkData, vibe.v6.pda))
+                              vibe.v5.pda=resultsPositionCalculator(benchmarkData, vibe.v5.pda),
+                              vibe.v6.simple=resultsPositionCalculator(benchmarkData, vibe.v6.simple),
+                              vibe.v6.pda=resultsPositionCalculator(benchmarkData, vibe.v6.pda))
 
 # Calculate total number of genes.
 totalResults <- data.frame(vibe.v5.simple=calculateTotalGenesFound(vibe.v5.simple),
                            vibe.v5.pda=calculateTotalGenesFound(vibe.v5.pda),
-                           #vibe.v6.simple=calculateTotalGenesFound(vibe.v6.simple),
-                           #vibe.v6.pda=calculateTotalGenesFound(vibe.v6.pda),
+                           vibe.v6.simple=calculateTotalGenesFound(vibe.v6.simple),
+                           vibe.v6.pda=calculateTotalGenesFound(vibe.v6.pda),
                            row.names=rownames(vibe.v5.simple))
 
 # Replicates some of the totalResults so that size is equal to positionResults.
