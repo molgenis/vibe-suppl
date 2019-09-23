@@ -665,6 +665,99 @@ toolScoresHistogram <- function(data, fileName, xlab, xlim, ylimMax) {
 }
 
 
+########
+# Name:
+# calculateTotalGeneFrequencies
+#
+# Description:
+# Calculates the total frequencies of genes among the whole benhmark output.
+#
+# Input:
+# benchmarkResults  - Results from a benchmark.
+#
+# Output:
+# A table containing the genes with their frequency counts.
+########
+calculateTotalGeneFrequencies <- function(benchmarkResults) {
+  convertedData <- sapply(benchmarkResults$suggested_genes, strsplit, split=",", USE.NAMES = FALSE)
+  convertedData <- do.call(c, convertedData)
+  geneCounts <- sort(table(convertedData), decreasing = TRUE)
+  return(geneCounts)
+}
+
+########
+# Name:
+# calculateLovdCountsForGenesWithMultipleOccurencesInSingleLovd
+#
+# Description:
+# Calculates for genes that occur multiple times in the output for a singe LOVD,
+# for how many LOVDs this is the case.
+#
+# Input:
+# benchmarkResults  - Results from a benchmark.
+#
+# Output:
+# A vector that contains the genes as names and as values for how many LOVDs this gene
+# was found multiple times within the output.
+########
+calculateLovdCountsForGenesWithMultipleOccurencesInSingleLovd <- function(benchmarkResults) {
+  genesPerLovd <- sapply(benchmarkResults$suggested_genes, function(suggestedGenes) {
+    geneFrequencies <- table(strsplit(suggestedGenes, ","))
+    return(names(which(geneFrequencies > 1)))
+  })
+  numberOfLovdsGenesHaveMultipleOccurencesIn <- table(unlist(genesPerLovd))
+  return(numberOfLovdsGenesHaveMultipleOccurencesIn)
+}
+
+########
+# Name:
+# plotTotalGeneFrequencyfunction
+#
+# Description:
+# 
+#
+# Input:
+# 
+#
+# Output:
+# A vector that contains the genes as names and as values for how many LOVDs this gene
+# was found multiple times within the output.
+########
+plotTotalGeneFrequencyfunction <- function(dataToPlot, totalCases, yLimMax, title) {
+  barplot(dataToPlot, las=2, col="steelblue4", space=0, border=NA, ylim=c(0,yLimMax),
+          names.arg=NA, main=title,
+          xlab="genes ordered by frequency\n(too many for individual names, count shows number of genes)", ylab='number of patient cases gene is found in output')
+  abline(h=totalCases, col="red")
+  legend(length(dataToPlot)*0.5,yLimMax, c('number of LOVDs'), lty=1, col="red")
+  axis(1, at=c(length(dataToPlot)))
+}
+
+########
+# Name:
+# plotGenesWithMultipleOccurencesInSingleLovds
+#
+# Description:
+# 
+#
+# Input:
+# 
+#
+# Output:
+# 
+########
+plotGenesWithMultipleOccurencesInSingleLovds <- function(dataToPlot, yLimMax, title) {
+  xLab <- 'genes that occured multiple times in a single LOVD output'
+  yLab <- 'n cases gene occured multiple times within a single LOVD output'
+  
+  if(length(dataToPlot) == 0) {
+    barplot(0, las=2, ylim=c(0,yLimMax), main=title, ylab=yLab, col=NA, border=NA)
+  }
+  else {
+    barplot(dataToPlot, las=2, col="steelblue4", ylim=c(0,yLimMax), main=title, ylab=yLab)
+  }
+  title(xlab = xLab, line = 6)
+}
+
 
 
 

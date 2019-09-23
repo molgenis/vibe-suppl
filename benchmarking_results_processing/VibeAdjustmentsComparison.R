@@ -124,6 +124,30 @@ genePercentageFoundWithinRelativeCutoff <- genesFoundWithinRelativeCutoff / nrow
 # Removes variable so that it cannot accidentally be used later on.
 rm(cutoffRanges)
 
+###
+### Calculates gene frequencies.
+###
+vibe.v5.simple.geneFrequencies <- calculateTotalGeneFrequencies(vibe.v5.simple)
+vibe.v5.pda.geneFrequencies <- calculateTotalGeneFrequencies(vibe.v5.pda)
+vibe.v6.simple.geneFrequencies <- calculateTotalGeneFrequencies(vibe.v6.simple)
+vibe.v6.pda.geneFrequencies <- calculateTotalGeneFrequencies(vibe.v6.pda)
+
+vibe.v5.simple.geneMultiOccur <- calculateLovdCountsForGenesWithMultipleOccurencesInSingleLovd(vibe.v5.simple)
+vibe.v5.pda.geneMultiOccur <- calculateLovdCountsForGenesWithMultipleOccurencesInSingleLovd(vibe.v5.pda)
+vibe.v6.simple.geneMultiOccur <- calculateLovdCountsForGenesWithMultipleOccurencesInSingleLovd(vibe.v6.simple)
+vibe.v6.pda.geneMultiOccur <- calculateLovdCountsForGenesWithMultipleOccurencesInSingleLovd(vibe.v6.pda)
+
+
+
+###
+### Collects the position from all LOVDs for the most often occuring genes.
+###
+commenGenesPosition <- sapply(names(vibe.v6.simple.geneFrequencies[1:20]), function(geneToLookFor) {
+  sapply(vibe.v6.simple$suggested_genes, function(suggestedGenes) {
+    match(geneToLookFor, strsplit(suggestedGenes, ",")[[1]])
+    }, USE.NAMES=FALSE)
+})
+
 
 
 ###
@@ -146,6 +170,44 @@ plotMatchesFoundWihinRangeCutoff(genePercentageFoundWithinRelativeCutoff,
                                  "relative cutoff from the output genes",
                                  "fraction of patient cases for which the gene was found",
                                  adjustmentColors, 0.1)
+
+
+
+###
+### Gene frequency plots.
+###
+yLimMax <- 600
+initializeGraphicsDevice("totalGeneFrequencies", width=10, height=10)
+par(mfrow=c(2,2))
+plotTotalGeneFrequencyfunction(vibe.v5.simple.geneFrequencies, nrow(vibe.v5.simple), yLimMax, 'DisGeNET v5, simple query')
+plotTotalGeneFrequencyfunction(vibe.v5.pda.geneFrequencies, nrow(vibe.v5.pda), yLimMax, 'DisGeNET v5, pda query')
+plotTotalGeneFrequencyfunction(vibe.v6.simple.geneFrequencies, nrow(vibe.v6.simple), yLimMax, 'DisGeNET v6, simple query')
+plotTotalGeneFrequencyfunction(vibe.v6.pda.geneFrequencies, nrow(vibe.v6.pda), yLimMax, 'DisGeNET v6 mixed with v5, pda query')
+dev.off()
+par(oldPar)
+
+yLimMax <- 250
+initializeGraphicsDevice("singleLovdMultiOccuringGenes", width=10, height=12)
+par(mfrow=c(2,2), mar=c(8.1,4.1,4.1,2.1))
+plotGenesWithMultipleOccurencesInSingleLovds(vibe.v5.simple.geneMultiOccur, yLimMax, 'DisGeNET v5, simple query')
+plotGenesWithMultipleOccurencesInSingleLovds(vibe.v5.pda.geneMultiOccur, yLimMax, 'DisGeNET v5, pda query')
+plotGenesWithMultipleOccurencesInSingleLovds(vibe.v6.simple.geneMultiOccur, yLimMax, 'DisGeNET v6, simple query')
+plotGenesWithMultipleOccurencesInSingleLovds(vibe.v6.pda.geneMultiOccur, yLimMax, 'DisGeNET v6 mixed with v5, pda query')
+dev.off()
+par(oldPar)
+
+###
+### Position boxplots for the most often occuring genes showing the position range in which it was found.
+###
+initializeGraphicsDevice("frequentGenesLovdPositions", width=10, height=10)
+par(mar=c(6.1,4.1,4.1,2.1))
+boxplot(commenGenesPosition, las=2, main="position gene was found in", ylab="position in output gene was found")
+#axis(3, at=c(1:ncol(commenGenesPosition)), tick=FALSE,
+#     labels=apply(commenGenesPosition, 2, function(x) (sum(!is.na(x)))))
+title(xlab="gene (top 20 most occuring among LOVDs)", line=5)
+dev.off()
+par(oldPar)
+
 
 
 
