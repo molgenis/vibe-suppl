@@ -171,4 +171,6 @@ There are several files used among these scripts. These include:
 [hgnc_complete]:http://ftp.ebi.ac.uk/pub/databases/genenames/new/tsv/hgnc_complete_set.txt
 [query_phenomizer]:https://github.com/svandenhoek/query_phenomizer
 [phenotips_download]:https://phenotips.org/Download
-[hpo_obo]:http://purl.obolibrary.org/obo/hp.obo
+
+[hpo_obo_current]:http://purl.obolibrary.org/obo/hp.obo
+[hpo_obo]:https://raw.githubusercontent.com/obophenotype/human-phenotype-ontology/2f6309173883d5d342849388c74bd986a2c0092c/hp.obo
