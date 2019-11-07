@@ -40,19 +40,23 @@ setwd(oldWd)
 imgExportDir <- paste0(baseImgExportDir, "vibe_adjustments/")
 
 # Defines color palette.
-adjustmentColors <- brewer.pal(4, 'Set2') # Adjust if changing number of tools!!!
+adjustmentColors <- brewer.pal(5, 'Set2') # Adjust if changing number of tools!!!
 
 # Load data.
 vibe.v5.simple <- readResultFile("results/vibe_2019-09-15_none.tsv")
 vibe.v5.pda <- readResultFile("results/vibe_2018-07-06_none.tsv")
 vibe.v6.simple <- readResultFile("results/vibe_2019-09-19_v6-simple_none.tsv")
-vibe.v6.pda <- readResultFile("results/vibe_2019-09-19_v6-old_none.tsv")
+vibe.v6with5.pda <- readResultFile("results/vibe_2019-09-19_v6-old_none.tsv")
+vibe.v6.direct.simple <- readResultFile("results/disgenet_6-0vibe_05d7fb85.tsv")
+#vibe.v6with5.direct.pda <- readResultFile("results/")
 
 # Sorts benchmark results so that row order is identical.
 vibe.v5.simple <- sortRows(vibe.v5.simple)
 vibe.v5.pda <- sortRows(vibe.v5.pda)
 vibe.v6.simple <- sortRows(vibe.v6.simple)
-vibe.v6.pda <- sortRows(vibe.v6.pda)
+vibe.v6with5.pda <- sortRows(vibe.v6with5.pda)
+vibe.v6.direct.simple <- sortRows(vibe.v6.direct.simple)
+#vibe.v6with5.direct.pda <- sortRows(vibe.v6with5.direct.pda)
 
 
 
@@ -65,13 +69,17 @@ vibe.v6.pda <- sortRows(vibe.v6.pda)
 positionResults <- data.frame(vibe.v5.simple=resultsPositionCalculator(benchmarkData, vibe.v5.simple),
                               vibe.v5.pda=resultsPositionCalculator(benchmarkData, vibe.v5.pda),
                               vibe.v6.simple=resultsPositionCalculator(benchmarkData, vibe.v6.simple),
-                              vibe.v6.pda=resultsPositionCalculator(benchmarkData, vibe.v6.pda))
+                              vibe.v6with5.pda=resultsPositionCalculator(benchmarkData, vibe.v6with5.pda),
+                              vibe.v6.direct.simple=resultsPositionCalculator(benchmarkData, vibe.v6.direct.simple))
+                              #vibe.v6with5.direct.pda=resultsPositionCalculator(benchmarkData, vibe.v6with5.direct.pda))
 
 # Calculate total number of genes.
 totalResults <- data.frame(vibe.v5.simple=calculateTotalGenesFound(vibe.v5.simple),
                            vibe.v5.pda=calculateTotalGenesFound(vibe.v5.pda),
                            vibe.v6.simple=calculateTotalGenesFound(vibe.v6.simple),
-                           vibe.v6.pda=calculateTotalGenesFound(vibe.v6.pda),
+                           vibe.v6with5.pda=calculateTotalGenesFound(vibe.v6with5.pda),
+                           vibe.v6.direct.simple=calculateTotalGenesFound(vibe.v6.direct.simple),
+                           #vibe.v6with5.direct.pda=calculateTotalGenesFound(vibe.v6with5.direct.pda),
                            row.names=rownames(vibe.v5.simple))
 
 # Replicates some of the totalResults so that size is equal to positionResults.
@@ -84,7 +92,7 @@ relativePositionResults <- positionResults / totalResults
 
 
 ###
-### Calculations for comparison of different tools (with best scoring vibe result) - found matches within position cutoffs
+### Calculations for comparison of tool adjustments - found matches within position cutoffs
 ###
 
 # Calculates how many of the genes are found when only looking within specific
@@ -130,13 +138,19 @@ rm(cutoffRanges)
 vibe.v5.simple.geneFrequencies <- calculateTotalGeneFrequencies(vibe.v5.simple)
 vibe.v5.pda.geneFrequencies <- calculateTotalGeneFrequencies(vibe.v5.pda)
 vibe.v6.simple.geneFrequencies <- calculateTotalGeneFrequencies(vibe.v6.simple)
-vibe.v6.pda.geneFrequencies <- calculateTotalGeneFrequencies(vibe.v6.pda)
+vibe.v6with5.pda.geneFrequencies <- calculateTotalGeneFrequencies(vibe.v6with5.pda)
+vibe.v6.direct.simple.geneFrequencies <- calculateTotalGeneFrequencies(vibe.v6.direct.simple)
+#vibe.v6with5.direct.pda.geneFrequencies <- calculateTotalGeneFrequencies(vibe.v6with5.direct.pda)
 
 vibe.v5.simple.geneMultiOccur <- calculateLovdCountsForGenesWithMultipleOccurencesInSingleLovd(vibe.v5.simple)
 vibe.v5.pda.geneMultiOccur <- calculateLovdCountsForGenesWithMultipleOccurencesInSingleLovd(vibe.v5.pda)
 vibe.v6.simple.geneMultiOccur <- calculateLovdCountsForGenesWithMultipleOccurencesInSingleLovd(vibe.v6.simple)
-vibe.v6.pda.geneMultiOccur <- calculateLovdCountsForGenesWithMultipleOccurencesInSingleLovd(vibe.v6.pda)
+vibe.v6with5.pda.geneMultiOccur <- calculateLovdCountsForGenesWithMultipleOccurencesInSingleLovd(vibe.v6with5.pda)
 
+# Check if equal (should be the case).
+all.equal(vibe.v6.simple.geneFrequencies, vibe.v6.direct.simple.geneFrequencies)
+#all.equal(vibe.v6with5.pda.geneFrequencies, vibe.v6with5.direct.pda.geneFrequencies)
+rm(vibe.v6.direct.simple.geneFrequencies, vibe.v6with5.direct.pda.geneFrequencies)
 
 
 ###
@@ -182,7 +196,7 @@ par(mfrow=c(2,2))
 plotTotalGeneFrequencyfunction(vibe.v5.simple.geneFrequencies, nrow(vibe.v5.simple), yLimMax, 'DisGeNET v5, simple query')
 plotTotalGeneFrequencyfunction(vibe.v5.pda.geneFrequencies, nrow(vibe.v5.pda), yLimMax, 'DisGeNET v5, pda query')
 plotTotalGeneFrequencyfunction(vibe.v6.simple.geneFrequencies, nrow(vibe.v6.simple), yLimMax, 'DisGeNET v6, simple query')
-plotTotalGeneFrequencyfunction(vibe.v6.pda.geneFrequencies, nrow(vibe.v6.pda), yLimMax, 'DisGeNET v6 mixed with v5, pda query')
+plotTotalGeneFrequencyfunction(vibe.v6with5.pda.geneFrequencies, nrow(vibe.v6with5.pda), yLimMax, 'DisGeNET v6 mixed with v5, pda query')
 dev.off()
 par(oldPar)
 
@@ -192,7 +206,7 @@ par(mfrow=c(2,2), mar=c(8.1,4.1,4.1,2.1))
 plotGenesWithMultipleOccurencesInSingleLovds(vibe.v5.simple.geneMultiOccur, yLimMax, 'DisGeNET v5, simple query')
 plotGenesWithMultipleOccurencesInSingleLovds(vibe.v5.pda.geneMultiOccur, yLimMax, 'DisGeNET v5, pda query')
 plotGenesWithMultipleOccurencesInSingleLovds(vibe.v6.simple.geneMultiOccur, yLimMax, 'DisGeNET v6, simple query')
-plotGenesWithMultipleOccurencesInSingleLovds(vibe.v6.pda.geneMultiOccur, yLimMax, 'DisGeNET v6 mixed with v5, pda query')
+plotGenesWithMultipleOccurencesInSingleLovds(vibe.v6with5.pda.geneMultiOccur, yLimMax, 'DisGeNET v6 mixed with v5, pda query')
 dev.off()
 par(oldPar)
 
