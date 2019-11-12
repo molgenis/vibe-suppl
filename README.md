@@ -1,5 +1,8 @@
 # vibe-suppl
-This repo contains supplemental files regarding the Java application found [here][vibe].
+This repo contains supplemental files regarding the Java application found [here][vibe]. Note that these are in no way
+needed to use the vibe tool, but were used to generate additional information (such as benchmarking). They were created
+with the assumption that they are used exactly in the way they are meant to be used, so while certain checks/validations
+might be present, using these scripts in the wrong way might result in weird behavior.
 
 ## Benchmarking
 
