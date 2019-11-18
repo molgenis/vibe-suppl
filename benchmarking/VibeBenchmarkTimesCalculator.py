@@ -55,7 +55,7 @@ def calculateTimes(inDir, outFile):
     fileWriter = open(outFile, 'w')
 
     # Writes the header to the file.
-    fileWriter.write("id\ttime (mm:ss)\n")
+    fileWriter.write("id\ttime (minutes)\n")
 
     # Processes all input files.
     for file in sorted(listdir(inDir)):
@@ -68,7 +68,7 @@ def calculateTimes(inDir, outFile):
             # Writes identifier to file as first column.
             fileWriter.write(file.split(".")[0].lstrip("err_") + "\t")
 
-            # Stores total time (user+sys) for file.
+            # Stores total time (user+sys) for file (in minutes).
             timeNeeded = 0.0
 
             # Process lines in file.
@@ -77,14 +77,10 @@ def calculateTimes(inDir, outFile):
                 if line.startswith("user") or line.startswith("sys"):
                     line = line.split("\t")[1]
                     lineMatch = match("(\d+)m(\d+(.\d+)?)s", line)
-                    timeNeeded += float(lineMatch.group(1)) * 60 + float(lineMatch.group(2))
+                    timeNeeded += float(lineMatch.group(1)) + ( float(lineMatch.group(2)) / 60 )
 
-            # After user and sys times were collected, converts seconds back to minutes and (whole) seconds.
-            minutes = floor(timeNeeded / 60)
-            seconds = round(timeNeeded % 60)
-
-            # Writes time to file (m:s).
-            fileWriter.write("{:02d}:{:02d}".format(minutes, seconds))
+            # Writes time to file (in minutes).
+            fileWriter.write(str(round(timeNeeded, 2)))
 
             # Writes a newline so that each processed file has its own line in the output file.
             fileWriter.write("\n")
