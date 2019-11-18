@@ -188,7 +188,7 @@ calculateTotalGenesFound <- function(benchmarkResults) {
 # benchmarkResults with the rows ordered on their name.
 ########
 sortRows <- function(benchmarkResults) {
-  benchmarkResults[order(as.numeric(rownames(benchmarkResults))), , drop=FALSE]
+  return(benchmarkResults[order(as.numeric(rownames(benchmarkResults))), , drop=FALSE])
 }
 
 ########
@@ -770,6 +770,6 @@ oldPar <- par()
 setEPS() # Sets EPS engine for writing images.
 
 # Load benchmark data.
-benchmarkData <- read.table(paste0(baseDir,"benchmark_input/benchmark_data.tsv"), header=T,
+benchmarkData <- read.table(paste0(baseDir,"benchmark_data.tsv"), header=T,
                             sep="\t",colClasses=c(rep("character", 3),
                                                   "factor", "character"))
