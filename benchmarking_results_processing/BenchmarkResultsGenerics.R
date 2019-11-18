@@ -22,14 +22,14 @@
 # - results/vibe_2018-07-06_gda_max.tsv
 # - results/vibe_2018-07-06_dsi.tsv
 # - results/vibe_2018-07-06_dpi.tsv
-baseDir <- '~/Programming/data/vibe/benchmarking/'
+baseDir <- '~/vibe_benchmarking_r_input/'
 
 # Directory to write the output images to.
 # Be sure this directory contains the following subfolders:
 # - tools
 # - vibe_sorting_algorithms
 # - vibe_adjustments
-baseImgExportDir <- '~/Pictures/vibe/'
+baseImgExportDir <- '~/vibe_benchmarking_r_output/'
 
 
 
