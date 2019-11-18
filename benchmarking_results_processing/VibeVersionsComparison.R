@@ -132,6 +132,14 @@ rm(cutoffRanges)
 
 
 ###
+### Shows cases where at least 1 of the versions has NA.
+###
+
+positionResults[!complete.cases(positionResults),]
+
+
+
+###
 ### Plots differences in time.
 ###
 dataToPlot <- vibe_times[order(vibe_times$old, decreasing=TRUE),]
