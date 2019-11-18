@@ -105,6 +105,26 @@ readResultFile <- function(filePath) {
 
 ########
 # Name:
+# readTimesFile
+#
+# Description:
+# Reads in a single file containing benchmarking times.
+#
+# Input:
+# filePath -  The path to the file to be loaded.
+#
+# Output:
+# A table from the result data. Though as the input is expected to only contain
+# 2 columns and one of these is used as row names, type becomes a list.
+########
+readTimesFile <- function(filePath) {
+  read.table(paste0(baseDir, filePath),
+             header=T, sep="\t", colClasses=c("character","double"),
+             row.names=1)
+}
+
+########
+# Name:
 # resultsPositionCalculator
 #
 # Description:
