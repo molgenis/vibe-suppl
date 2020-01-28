@@ -154,7 +154,7 @@ def convertIdsToSymbols(fileToProcess, geneInfoDict):
                     newValues.append(possibleNewValues[0])
                 elif possibleNewValues[1] != '':
                     #print("Using uncurated match for {}".format(oldValue))
-                    newValues.append(possibleNewValues[0])
+                    newValues.append(possibleNewValues[1])
                 else:
                     raise Exception("An unknown exception has occured for {}.".format(oldValues))
 
