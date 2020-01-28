@@ -135,8 +135,9 @@ def convertIdsToSymbols(fileToProcess, geneInfoDict):
             # Splits line on separator.
             line = line.rstrip().split("\t")
 
-            # Skips lines where no results were generated.
+            # Simply writes the line if no results were generated.
             if len(line) == 1:
+                fileWriter.write(line[0] + "\t" + linesep)
                 continue
 
             # Retrieves the gene IDs.
