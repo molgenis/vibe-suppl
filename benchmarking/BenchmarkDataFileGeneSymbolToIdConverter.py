@@ -54,7 +54,7 @@ def convertIdsToSymbols(fileToProcess, geneInfoDict):
             # Goes through gene IDs and stores their symbols.
             possibleNewValues = geneInfoDict.get(line[1].upper())
             if possibleNewValues is None:
-                eprint("No replacement NCBI gene id could be found for {}, using old symbol instead.".format(line[1]))
+                eprint("No replacement NCBI gene id could be found for {}, using symbol instead.".format(line[1]))
             elif possibleNewValues[0] != '':
                 line[1] = possibleNewValues[0]
             elif possibleNewValues[1] != '':
