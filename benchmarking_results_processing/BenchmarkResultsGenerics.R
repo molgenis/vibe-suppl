@@ -22,14 +22,14 @@
 # - results/vibe_2018-07-06_gda_max.tsv
 # - results/vibe_2018-07-06_dsi.tsv
 # - results/vibe_2018-07-06_dpi.tsv
-baseDir <- '~/Programming/data/vibe/benchmarking/'
+baseDir <- '~/vibe_benchmarking_r_input/'
 
 # Directory to write the output images to.
 # Be sure this directory contains the following subfolders:
 # - tools
 # - vibe_sorting_algorithms
 # - vibe_adjustments
-baseImgExportDir <- '~/Pictures/vibe/'
+baseImgExportDir <- '~/vibe_benchmarking_r_output/'
 
 
 
@@ -100,6 +100,26 @@ initializeGraphicsDevice <- function(fileName, width, height) {
 readResultFile <- function(filePath) {
   read.table(paste0(baseDir, filePath),
              header=T, sep="\t", colClasses=c("character"),
+             row.names=1)
+}
+
+########
+# Name:
+# readTimesFile
+#
+# Description:
+# Reads in a single file containing benchmarking times.
+#
+# Input:
+# filePath -  The path to the file to be loaded.
+#
+# Output:
+# A table from the result data. Though as the input is expected to only contain
+# 2 columns and one of these is used as row names, type becomes a list.
+########
+readTimesFile <- function(filePath) {
+  read.table(paste0(baseDir, filePath),
+             header=T, sep="\t", colClasses=c("character","double"),
              row.names=1)
 }
 
@@ -188,7 +208,7 @@ calculateTotalGenesFound <- function(benchmarkResults) {
 # benchmarkResults with the rows ordered on their name.
 ########
 sortRows <- function(benchmarkResults) {
-  benchmarkResults[order(as.numeric(rownames(benchmarkResults))), , drop=FALSE]
+  return(benchmarkResults[order(as.numeric(rownames(benchmarkResults))), , drop=FALSE])
 }
 
 ########
@@ -665,6 +685,99 @@ toolScoresHistogram <- function(data, fileName, xlab, xlim, ylimMax) {
 }
 
 
+########
+# Name:
+# calculateTotalGeneFrequencies
+#
+# Description:
+# Calculates the total frequencies of genes among the whole benhmark output.
+#
+# Input:
+# benchmarkResults  - Results from a benchmark.
+#
+# Output:
+# A table containing the genes with their frequency counts.
+########
+calculateTotalGeneFrequencies <- function(benchmarkResults) {
+  convertedData <- sapply(benchmarkResults$suggested_genes, strsplit, split=",", USE.NAMES = FALSE)
+  convertedData <- do.call(c, convertedData)
+  geneCounts <- sort(table(convertedData), decreasing = TRUE)
+  return(geneCounts)
+}
+
+########
+# Name:
+# calculateLovdCountsForGenesWithMultipleOccurencesInSingleLovd
+#
+# Description:
+# Calculates for genes that occur multiple times in the output for a singe LOVD,
+# for how many LOVDs this is the case.
+#
+# Input:
+# benchmarkResults  - Results from a benchmark.
+#
+# Output:
+# A vector that contains the genes as names and as values for how many LOVDs this gene
+# was found multiple times within the output.
+########
+calculateLovdCountsForGenesWithMultipleOccurencesInSingleLovd <- function(benchmarkResults) {
+  genesPerLovd <- sapply(benchmarkResults$suggested_genes, function(suggestedGenes) {
+    geneFrequencies <- table(strsplit(suggestedGenes, ","))
+    return(names(which(geneFrequencies > 1)))
+  })
+  numberOfLovdsGenesHaveMultipleOccurencesIn <- table(unlist(genesPerLovd))
+  return(numberOfLovdsGenesHaveMultipleOccurencesIn)
+}
+
+########
+# Name:
+# plotTotalGeneFrequencyfunction
+#
+# Description:
+# 
+#
+# Input:
+# 
+#
+# Output:
+# A vector that contains the genes as names and as values for how many LOVDs this gene
+# was found multiple times within the output.
+########
+plotTotalGeneFrequencyfunction <- function(dataToPlot, totalCases, yLimMax, title) {
+  barplot(dataToPlot, las=2, col="steelblue4", space=0, border=NA, ylim=c(0,yLimMax),
+          names.arg=NA, main=title,
+          xlab="genes ordered by frequency\n(too many for individual names, count shows number of genes)", ylab='number of patient cases gene is found in output')
+  abline(h=totalCases, col="red")
+  legend(length(dataToPlot)*0.5,yLimMax, c('number of LOVDs'), lty=1, col="red")
+  axis(1, at=c(length(dataToPlot)))
+}
+
+########
+# Name:
+# plotGenesWithMultipleOccurencesInSingleLovds
+#
+# Description:
+# 
+#
+# Input:
+# 
+#
+# Output:
+# 
+########
+plotGenesWithMultipleOccurencesInSingleLovds <- function(dataToPlot, yLimMax, title) {
+  xLab <- 'genes that occured multiple times in a single LOVD output'
+  yLab <- 'n cases gene occured multiple times within a single LOVD output'
+  
+  if(length(dataToPlot) == 0) {
+    barplot(0, las=2, ylim=c(0,yLimMax), main=title, ylab=yLab, col=NA, border=NA)
+  }
+  else {
+    barplot(dataToPlot, las=2, col="steelblue4", ylim=c(0,yLimMax), main=title, ylab=yLab)
+  }
+  title(xlab = xLab, line = 6)
+}
+
 
 
 
@@ -677,6 +790,6 @@ oldPar <- par()
 setEPS() # Sets EPS engine for writing images.
 
 # Load benchmark data.
-benchmarkData <- read.table(paste0(baseDir,"benchmark_input/benchmark_data.tsv"), header=T,
+benchmarkData <- read.table(paste0(baseDir,"benchmark_data.tsv"), header=T,
                             sep="\t",colClasses=c(rep("character", 3),
                                                   "factor", "character"))

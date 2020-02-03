@@ -34,7 +34,7 @@ def fileMergerParser():
     parser = ArgumentParser()
     parser.add_argument("inDir", help="the directory containing all input files")
     parser.add_argument("out", help="the file to write output to")
-    parser.add_argument("sort", help="how the genes should be sorted (options: gda_max, dsi, dpi)")
+    parser.add_argument("sort", help="how the genes should be sorted (options: gda_max, dsi, dpi, none)")
 
     # Processes command line.
     args = parser.parse_args()

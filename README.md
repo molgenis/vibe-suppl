@@ -1,5 +1,8 @@
 # vibe-suppl
-This repo contains supplemental files regarding the Java application found [here][vibe].
+This repo contains supplemental files regarding the Java application found [here][vibe]. Note that these are in no way
+needed to use the vibe tool, but were used to generate additional information (such as benchmarking). They were created
+with the assumption that they are used exactly in the way they are meant to be used, so while certain checks/validations
+might be present, using these scripts in the wrong way might result in weird behavior.
 
 ## Benchmarking
 
@@ -171,4 +174,6 @@ There are several files used among these scripts. These include:
 [hgnc_complete]:http://ftp.ebi.ac.uk/pub/databases/genenames/new/tsv/hgnc_complete_set.txt
 [query_phenomizer]:https://github.com/svandenhoek/query_phenomizer
 [phenotips_download]:https://phenotips.org/Download
-[hpo_obo]:http://purl.obolibrary.org/obo/hp.obo
+
+[hpo_obo_current]:http://purl.obolibrary.org/obo/hp.obo
+[hpo_obo]:https://raw.githubusercontent.com/obophenotype/human-phenotype-ontology/2f6309173883d5d342849388c74bd986a2c0092c/hp.obo
