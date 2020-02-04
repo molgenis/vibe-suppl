@@ -34,11 +34,11 @@ def main():
     # Runs application processes.
     args = parseCommandLine()
     geneInfoDict = storeGeneInfo(args.geneInfoFile)
-    convertIdsToSymbols(args.fileToProcess, geneInfoDict)
+    convertSymbolsToIds(args.fileToProcess, geneInfoDict)
 
 
 
-def convertIdsToSymbols(fileToProcess, geneInfoDict):
+def convertSymbolsToIds(fileToProcess, geneInfoDict):
     # File to write output to.
     fileWriter = open(fileToProcess.rpartition(".")[0] + "_ncbi-gene-ids.tsv", 'w')
 
