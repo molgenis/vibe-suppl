@@ -27,7 +27,6 @@ baseDir <- '~/vibe_benchmarking_r_input/'
 # Directory to write the output images to.
 # Be sure this directory contains the following subfolders:
 # - tools
-# - vibe_sorting_algorithms
 baseImgExportDir <- '~/vibe_benchmarking_r_output/'
 
 
