@@ -44,6 +44,8 @@ imgExportDir <- paste0(baseImgExportDir, "vibe_versions/")
 versionColors <- c('slategray2','steelblue4')
 
 # Load data and sorts it (ensures identical row order).
+# Note that used commits aren't the exact commits associated with the release tag, but they do
+# indicate the major change done to the TDB processing.
 vibe.1_0.results <- sortRows(readResultFile("vibe_50ecddcff7436a5023fa4fbe65098c45fa76d2ce_results.tsv"))
 vibe.1_0.time <- sortRows(readTimesFile("vibe_50ecddcff7436a5023fa4fbe65098c45fa76d2ce_time.tsv"))
 
