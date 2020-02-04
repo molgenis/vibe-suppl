@@ -28,7 +28,6 @@ baseDir <- '~/vibe_benchmarking_r_input/'
 # Be sure this directory contains the following subfolders:
 # - tools
 # - vibe_sorting_algorithms
-# - vibe_adjustments
 baseImgExportDir <- '~/vibe_benchmarking_r_output/'
 
 
