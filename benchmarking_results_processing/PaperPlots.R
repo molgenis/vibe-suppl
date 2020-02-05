@@ -448,3 +448,95 @@ length(unlist(uniqueFound))
 
 # Total solved at cutoff.
 length(unique(unlist(withinTopX)))
+
+#############
+# FIGURE 3
+# extra analysis to show practical value
+#############
+
+# load NCBI symbols of CGD genes and convert to vector
+cgdDF <- read.table("/Users/joeri/github/vibe-suppl/cgd/CGD_4feb2020-ncbi-gene-ids-minimized.tsv", header = T)
+cgd <- cgdDF[,1]
+
+# set seed for pseudo-random numbers for reproducibility
+# don't forget to reset seed when re-running code
+set.seed(0) 
+
+# empty dataframe to capture results
+out <- data.frame()
+
+# the names of the dataframes used as inputs
+dfs <- c("gado", "vibe", "hiphive", "phenix", "pubcf", "phenomizer", "phenotips", "amelie")
+
+# iterate over the tools
+for(df in dfs)
+{
+  data <- get(df)
+  # iterate over the patient cases in benchmark
+  for (i in 1:nrow(benchmarkData)) {
+    row <- benchmarkData[i,]
+    permGI <- c()
+    # do permutations to stabilize results, use odd number to prevent ties in median
+    for (p in 1:5) { 
+      # rank of the causal gene
+      geneRank <- match(row$gene, strsplit(data[unlist(row$lovd),"suggested_genes"], ",")[[1]])
+      # if not in tool output, set NA and continue
+      if(is.na(geneRank)) {
+        geneIndex <- NA
+      } else {
+        # select all CGD genes minus the current causal one
+        cgdMinusCurrentGene <- cgd[-which(cgd==row$gene)]
+        # randomly sample 19 other genes
+        samp <- sample(cgdMinusCurrentGene, 19)
+        # get the ranks of the random genes
+        sampRanks <- match(samp, strsplit(data[unlist(row$lovd),"suggested_genes"], ",")[[1]])
+        # collate, sort, and get the index of the causal gene, 1 is best, 20 worst
+        allRanks <- c(sampRanks, geneRank)
+        sortRanks <- sort(allRanks)
+        geneIndex <- which(sortRanks == geneRank)
+      }
+      # add the result to the permutation list
+      permGI <- c(permGI, geneIndex)
+    }
+    # finally add to output: the tool, the patient ID, and the median of the permutation results
+    out <- rbind(out, data.frame(tool = df, lovd = row$lovd, gindex = sort(permGI)[3])) # 3rd index for 5 permutations
+  }
+}
+
+# must be 8 * 308 = 2464
+dim(out)[1] == 2464
+
+# do cross-tool count of how many 1-ranked, 2-ranked, etc
+outuniq <- as.data.frame(table(out$gindex, out$tool))
+colnames(outuniq) <- c("gindex", "tool", "freq")
+outuniq$gindex <- as.numeric(as.character(outuniq$gindex))
+
+# add a 0 freq at position 20 to make the plot consistent
+for(df in dfs){ outuniq <- rbind(outuniq, data.frame(gindex=20, tool=df, freq=0)) }
+  
+# fix names ...
+levels(outuniq$tool)[match("gado",levels(outuniq$tool))] <- "GADO"
+levels(outuniq$tool)[match("vibe",levels(outuniq$tool))] <- "VIBE"
+levels(outuniq$tool)[match("amelie",levels(outuniq$tool))] <- "AMELIE"
+levels(outuniq$tool)[match("phenomizer",levels(outuniq$tool))] <- "Phenomizer"
+levels(outuniq$tool)[match("phenotips",levels(outuniq$tool))] <- "Phenotips"
+levels(outuniq$tool)[match("phenix",levels(outuniq$tool))] <- "PhenIX"
+levels(outuniq$tool)[match("hiphive",levels(outuniq$tool))] <- "hiPHIVE"
+levels(outuniq$tool)[match("pubcf",levels(outuniq$tool))] <- "PubCaseF."
+
+# in addition, do cumulative count of solved cased by rank
+outuniq <- outuniq %>%
+  group_by(tool) %>%
+  mutate(cumuFreq = cumsum(freq))
+
+# visualize and save
+ggplot() +
+  geom_point(data = outuniq, aes(x = gindex, y = cumuFreq, color = tool), size=3) +
+  geom_line(data = outuniq, aes(x = gindex, y = cumuFreq, color = tool), size=1) +
+  scale_color_manual(values = colours) +
+  scale_x_continuous(breaks = seq(1,20,1), limits = c(1,20)) +
+  theme(text = element_text(size=20), legend.title=element_blank(), legend.position = c(0.7, 0.6)) +
+  labs(x = "Gene rank in simulated spiked-in clinical gene sets", y = "Number of causal genes detected") +
+ggSaveCustom("Figure3", width=8, height=5)
+
+
