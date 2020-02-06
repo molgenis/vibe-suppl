@@ -43,6 +43,7 @@ library(reshape2)
 library(ggplot2)
 library(ggdendro)
 library(cowplot)
+library(beeswarm)
 
 
 
@@ -449,94 +450,76 @@ length(unlist(uniqueFound))
 # Total solved at cutoff.
 length(unique(unlist(withinTopX)))
 
-#############
-# FIGURE 3
-# extra analysis to show practical value
-#############
+###
+### Figure 3: Extra analysis to show practical value.
+###
 
 # load NCBI symbols of CGD genes and convert to vector
-cgdDF <- read.table("/Users/joeri/github/vibe-suppl/cgd/CGD_4feb2020-ncbi-gene-ids-minimized.tsv", header = T)
-cgd <- cgdDF[,1]
-
-# set seed for pseudo-random numbers for reproducibility
-# don't forget to reset seed when re-running code
-set.seed(0) 
-
-# empty dataframe to capture results
-out <- data.frame()
+cgd <- as.character(scan(paste0(baseDir, "cgd-ids_2020-02-04.csv"), sep=","))
 
 # the names of the dataframes used as inputs
-dfs <- c("gado", "vibe", "hiphive", "phenix", "pubcf", "phenomizer", "phenotips", "amelie")
+tools <- c("gado", "vibe", "hiphive", "phenix", "pubcf", "phenomizer", "phenotips", "amelie")
 
-# iterate over the tools
-for(df in dfs)
-{
-  data <- get(df)
-  # iterate over the patient cases in benchmark
-  for (i in 1:nrow(benchmarkData)) {
-    row <- benchmarkData[i,]
-    permGI <- c()
-    # do permutations to stabilize results, use odd number to prevent ties in median
-    for (p in 1:5) { 
-      # rank of the causal gene
-      geneRank <- match(row$gene, strsplit(data[unlist(row$lovd),"suggested_genes"], ",")[[1]])
-      # if not in tool output, set NA and continue
-      if(is.na(geneRank)) {
-        geneIndex <- NA
-      } else {
-        # select all CGD genes minus the current causal one
-        cgdMinusCurrentGene <- cgd[-which(cgd==row$gene)]
-        # randomly sample 19 other genes
-        samp <- sample(cgdMinusCurrentGene, 19)
-        # get the ranks of the random genes
-        sampRanks <- match(samp, strsplit(data[unlist(row$lovd),"suggested_genes"], ",")[[1]])
-        # collate, sort, and get the index of the causal gene, 1 is best, 20 worst
-        allRanks <- c(sampRanks, geneRank)
-        sortRanks <- sort(allRanks)
-        geneIndex <- which(sortRanks == geneRank)
-      }
-      # add the result to the permutation list
-      permGI <- c(permGI, geneIndex)
-    }
-    # finally add to output: the tool, the patient ID, and the median of the permutation results
-    out <- rbind(out, data.frame(tool = df, lovd = row$lovd, gindex = sort(permGI)[3])) # 3rd index for 5 permutations
-  }
-}
+# Generate splitted genes for all tools: [[tool]][[lovd]][genes]
+setClass("suggestedGenes", representation(genes="vector"))
+toolOutputSplitted <- sapply(tools, function(tool) {
+  toolData <- get(tool)
+  sapply(rownames(toolData), function(lovd, toolData) {
+    new("suggestedGenes", genes=strsplit(toolData[lovd,"suggested_genes"], ","))
+  }, toolData=toolData)
+}, simplify=FALSE)
 
-# must be 8 * 308 = 2464
-dim(out)[1] == 2464
+# Defines number of runs.
+runs <- 40
 
-# do cross-tool count of how many 1-ranked, 2-ranked, etc
-outuniq <- as.data.frame(table(out$gindex, out$tool))
-colnames(outuniq) <- c("gindex", "tool", "freq")
-outuniq$gindex <- as.numeric(as.character(outuniq$gindex))
+# Defines number of spiking genes.
+spikingGenes <- 49
 
-# add a 0 freq at position 20 to make the plot consistent
-for(df in dfs){ outuniq <- rbind(outuniq, data.frame(gindex=20, tool=df, freq=0)) }
+# Set seed for pseudo-random numbers for reproducibility.
+# Don't forget to reset seed when re-running code!!!
+set.seed(0)
+
+# Runs benchmark a number of times.
+enrichedScores <- sapply(1:runs, function(x, spikingGenes) {
+  # Generate sample matrix containing the genes to use for ranking (together with target gene).
+  cgdSample <- t(apply(benchmarkData, 1, function(case, spikingGenes) {
+    # Select all CGD genes minus the current causal one.
+    cgdMinusCurrentGene <- cgd[!cgd %in% case["gene"]]
+    # Randomly sample 19 other genes.
+    cgdSample <- sample(cgdMinusCurrentGene, spikingGenes)
+  }, spikingGenes=spikingGenes))
   
-# fix names ...
-levels(outuniq$tool)[match("gado",levels(outuniq$tool))] <- "GADO"
-levels(outuniq$tool)[match("vibe",levels(outuniq$tool))] <- "VIBE"
-levels(outuniq$tool)[match("amelie",levels(outuniq$tool))] <- "AMELIE"
-levels(outuniq$tool)[match("phenomizer",levels(outuniq$tool))] <- "Phenomizer"
-levels(outuniq$tool)[match("phenotips",levels(outuniq$tool))] <- "Phenotips"
-levels(outuniq$tool)[match("phenix",levels(outuniq$tool))] <- "PhenIX"
-levels(outuniq$tool)[match("hiphive",levels(outuniq$tool))] <- "hiPHIVE"
-levels(outuniq$tool)[match("pubcf",levels(outuniq$tool))] <- "PubCaseF."
+  # Goes through all cases.
+  return(t(sapply(1:nrow(benchmarkData), function(nRow, benchmarkData, cgdSample, toolOutputSplitted) {
+    # Defines the target gene.
+    benchmarkGene <- benchmarkData[nRow,"gene"]
+    # Defines the full set of genes which need to be ranked (target + cgdSample).
+    geneSet <- c(benchmarkGene, cgdSample[nRow,])
+    
+    # Goes through all tools.
+    sapply(names(toolOutputSplitted), function(toolName, lovd, benchmarkGene, geneSet, toolOutputSplitted) {
+      # Finds matches for the enriched gene set within the full output for that tool/lovd. 
+      geneSetMatches <- match(geneSet, toolOutputSplitted[[toolName]][[lovd]]@genes[[1]])
+      # If benchmark gene is not found, returns adjusted score.
+      if(is.na(geneSetMatches[1])){
+        return(mean(c(sum(!is.na(geneSetMatches)), length(geneSet))))
+        #return(length(geneSet))
+      }
+      # Orders the found matches (NA=LAST).
+      geneSetOrdered <- geneSet[order(geneSetMatches)]
+      # Returns the found location of the target gene in the enriched gene set.
+      return(match(benchmarkGene, geneSetOrdered))
+    }, lovd=benchmarkData[nRow,"lovd"], benchmarkGene=benchmarkGene, geneSet=geneSet, toolOutputSplitted=toolOutputSplitted)
+  }, benchmarkData=benchmarkData, cgdSample=cgdSample, toolOutputSplitted=toolOutputSplitted)))
+}, spikingGenes=spikingGenes, simplify=FALSE)
 
-# in addition, do cumulative count of solved cased by rank
-outuniq <- outuniq %>%
-  group_by(tool) %>%
-  mutate(cumuFreq = cumsum(freq))
+# Calculate median per tool/case combination.
+MedianScores <- matrix(sapply(1:length(enrichedScores[[1]]), function(x) {
+  median(sapply(enrichedScores, "[[", x))
+}), ncol=8, dimnames=list(1:nrow(benchmarkData), names(toolOutputSplitted)))
 
-# visualize and save
-ggplot() +
-  geom_point(data = outuniq, aes(x = gindex, y = cumuFreq, color = tool), size=3) +
-  geom_line(data = outuniq, aes(x = gindex, y = cumuFreq, color = tool), size=1) +
-  scale_color_manual(values = colours) +
-  scale_x_continuous(breaks = seq(1,20,1), limits = c(1,20)) +
-  theme(text = element_text(size=20), legend.title=element_blank(), legend.position = c(0.7, 0.6)) +
-  labs(x = "Gene rank in simulated spiked-in clinical gene sets", y = "Number of causal genes detected") +
-ggSaveCustom("Figure3", width=8, height=5)
-
-
+# Create boxplot.
+melted <- melt(MedianScores)
+colnames(melted) <- c("case", "tool", "value")
+boxplot(value~tool, data=melted, ylim=c(0,30), outline=FALSE, las=2)
+beeswarm(value~tool, data=melted, add=TRUE, corral="wrap")
