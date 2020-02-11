@@ -43,7 +43,6 @@ library(reshape2)
 library(ggplot2)
 library(ggdendro)
 library(cowplot)
-library(beeswarm)
 
 
 
@@ -239,6 +238,9 @@ benchmarkData <- read.table(paste0(baseDir,"benchmark_data-ncbi_id.tsv"), header
                             sep="\t",colClasses=c(rep("character", 3),
                                                   "factor", "character"))
 
+# load NCBI symbols of CGD genes and converts to vector.
+cgd <- as.character(scan(paste0(baseDir, "cgd-ids_2020-02-04.csv"), sep=","))
+
 # Loads benchmark results and sorts it so that row order is identical.
 amelie <- sortRows(readResultFile("amelie.tsv"))
 gado <- sortRows(readResultFile("gado.tsv"))
@@ -251,28 +253,41 @@ vibe <- sortRows(readResultFile("vibe.tsv"))
 
 # Calculate absolute positions. This is done by processing benchmarkData row-by-row
 # and therefore the LOVD row order of positionResults is equal to that of benchmarkData.
-positionResults <- data.frame(amelie=resultsPositionCalculator(benchmarkData, amelie),
-                              gado=resultsPositionCalculator(benchmarkData, gado),
-                              phenomizer=resultsPositionCalculator(benchmarkData, phenomizer),
-                              phenotips=resultsPositionCalculator(benchmarkData, phenotips),
-                              vibe=resultsPositionCalculator(benchmarkData, vibe),
-                              hiphive=resultsPositionCalculator(benchmarkData, hiphive),
-                              pubcf=resultsPositionCalculator(benchmarkData, pubcf),
-                              phenix=resultsPositionCalculator(benchmarkData, phenix))
+positionResults <- data.frame("AMELIE"=resultsPositionCalculator(benchmarkData, amelie),
+                              "GADO"=resultsPositionCalculator(benchmarkData, gado),
+                              "Phenomizer"=resultsPositionCalculator(benchmarkData, phenomizer),
+                              "Phenotips"=resultsPositionCalculator(benchmarkData, phenotips),
+                              "VIBE"=resultsPositionCalculator(benchmarkData, vibe),
+                              "hiPHIVE"=resultsPositionCalculator(benchmarkData, hiphive),
+                              "PubCaseF."=resultsPositionCalculator(benchmarkData, pubcf),
+                              "PhenIX"=resultsPositionCalculator(benchmarkData, phenix))
 
 # Calculate total number of genes.
-totalResults <- data.frame(amelie=calculateTotalGenesFound(amelie),
-                           gado=calculateTotalGenesFound(gado),
-                           phenomizer=calculateTotalGenesFound(phenomizer),
-                           phenotips=calculateTotalGenesFound(phenotips),
-                           vibe=calculateTotalGenesFound(vibe),
-                           hiphive=calculateTotalGenesFound(hiphive),
-                           pubcf=calculateTotalGenesFound(pubcf),
-                           phenix=calculateTotalGenesFound(phenix),
+totalResults <- data.frame("AMELIE"=calculateTotalGenesFound(amelie),
+                           "GADO"=calculateTotalGenesFound(gado),
+                           "Phenomizer"=calculateTotalGenesFound(phenomizer),
+                           "Phenotips"=calculateTotalGenesFound(phenotips),
+                           "VIBE"=calculateTotalGenesFound(vibe),
+                           "hiPHIVE"=calculateTotalGenesFound(hiphive),
+                           "PubCaseF."=calculateTotalGenesFound(pubcf),
+                           "PhenIX"=calculateTotalGenesFound(phenix),
                            row.names=rownames(amelie))
 
 # Replicates some of the totalResults so that size is equal to positionResults.
 totalResults <- totalResults[benchmarkData$lovd,]
+
+# The names of the dataframes used as inputs. Make sure to use sae order as colnames(positionResults)!!!
+tools <- c("amelie", "gado", "phenomizer", "phenotips", "vibe", "hiphive", "pubcf", "phenix")
+
+# Generate splitted genes for all tools: [[tool]][[lovd]][genes]
+setClass("suggestedGenes", representation(genes="vector"))
+toolOutputSplitted <- sapply(tools, function(tool) {
+  toolData <- get(tool)
+  sapply(rownames(toolData), function(lovd, toolData) {
+    new("suggestedGenes", genes=strsplit(toolData[lovd,"suggested_genes"], ","))
+  }, toolData=toolData)
+}, simplify=FALSE)
+names(toolOutputSplitted) <- colnames(positionResults)
 
 ###
 ### Data info.
@@ -290,12 +305,21 @@ rownames(amelie) == rownames(gado) &&
 # Check whether there is any phenotype set for which no single gene was found.
 any(is.na(totalResults))
 
+# Tool colors
+toolColors <- c("Phenomizer" = "#CC79A7",
+             "Phenotips" = "#D55E00",
+             "PhenIX" = "#009E73",
+             "AMELIE" = "#F0E442",
+             "VIBE" = "#0072B2",
+             "PubCaseF." = "#56B4E9",
+             "hiPHIVE" = "#E69F00",
+             "GADO" = "#505050") # http://jfly.uni-koeln.de/color/#pallet
+
 ###
 ### Figure 1: Scatterplot with means and missing
 ###
 
 # Preperations.
-colnames(positionResults) <- c("AMELIE", "GADO", "Phenomizer", "Phenotips", "VIBE", "hiPHIVE",  "PubCF.", "PhenIX")
 posRelM <- melt(positionResults, id.vars = 0)
 totResM <- melt(totalResults, id.vars = 0)
 posRelM$total <- totResM$value
@@ -310,14 +334,6 @@ gd <- posRelM %>%
 toolNaRanks <- aggregate(rank ~ tool, data=posRelM, function(x) {sum(is.na(x))}, na.action = NULL)
 gd$NAs <- paste(toolNaRanks$tool, " (", toolNaRanks$rank, " missed)", sep="")
 
-colours <- c("Phenomizer" = "#CC79A7",
-             "Phenotips" = "#D55E00",
-             "PhenIX" = "#009E73",
-             "AMELIE" = "#F0E442",
-             "VIBE" = "#0072B2",
-             "PubCaseF." = "#56B4E9",
-             "hiPHIVE" = "#E69F00",
-             "GADO" = "#505050") # http://jfly.uni-koeln.de/color/#pallet
 gd$labX <- c(250,   3100,    10,    10,   250,  180,   10,   10)
 gd$labY <- c(30000, 30000, 30000, 3000, 10000, 3000, 10000, 1000)
 
@@ -335,10 +351,15 @@ ggplot() +
   scale_y_log10(breaks = c(1, 10, 100, 1000, 10000)) + scale_x_log10(breaks = c(1, 10, 100, 1000, 10000, 40000)) +
   theme_bw() +
   theme(panel.grid = element_blank(), panel.border = element_rect(colour = "black"), axis.ticks = element_line(colour = "black"), legend.position = "none", axis.text = element_text(color = "black")) +
-  scale_color_manual(values = colours) +
-  scale_fill_manual(values = colours) +
+  scale_color_manual(values = toolColors) +
+  scale_fill_manual(values = toolColors) +
   labs(x = "Total number of candidate genes returned", y = "Rank of the causal gene")
 ggSaveCustom("Figure1", width=4, height=2.5)
+
+# Removes variables specific to this section.
+rm(posRelM,totResM,gd,toolNaRanks)
+
+
 
 ###
 ### Figure 2: Heatmap showing absolute positions from the different tools.
@@ -427,53 +448,50 @@ plot_grid(
 )
 dev.off()
 
+# Removes variables specific to this section.
+rm(customBreaks,customColours,naValue,dataToPlot,xClust,yClust,dendroTheme,xClustPlot,yClustPlot,hmPlot,hmInfo,hmInfoPlot)
+
 ###
 ### Unique found per tool at defined cutoff.
 ###
 
-# Finds all cases found at cutoff. 
-cutoffAbs <- 20
-withinTopX <- apply(positionResults <= cutoffAbs, 2, which)
+# Defines cutoff for showing unique.
+cutoffLimit <- 40
 
-# Finds all unique cases at cutoff.
-uniqueFound <- sapply(1:length(withinTopX), function(x) {
-  withinTopX[[x]][which(!unlist(withinTopX[x]) %in% unlist(withinTopX[-x]))]
-})
-names(uniqueFound) <- names(withinTopX)
+# Gives unique for each cutoff per tool.
+uniquePerCutoff <- sapply(1:cutoffLimit, function(cutoffLimit, positionResults) {
+  withinTopX <- apply(positionResults <= as.double(cutoffLimit), 2, which)
+  return(sapply(1:length(withinTopX), function(x) {
+    length(withinTopX[[x]][which(!unlist(withinTopX[x]) %in% unlist(withinTopX[-x]))])
+  }))
+}, positionResults=positionResults)
+dimnames(uniquePerCutoff) <- list(colnames(positionResults), 1:cutoffLimit)
 
-# Number of unique found per tool.
-sapply(uniqueFound, length)
+# Total unique per cutoff.
+apply(uniquePerCutoff, 2, sum)
 
-# Total unique.
-length(unlist(uniqueFound))
+# Plot figure.
+initializeGraphicsDevice('unique_per_cutoff', width=8, height=4)
+par(mar=c(5.1, 4.1, 4.1, 5.1))
+barplot(uniquePerCutoff, col=toolColors[rownames(uniquePerCutoff)], space=FALSE, border=NA, las=1,
+        xlab="cutoff", ylab="percentage unique hits")
+par(xpd=TRUE) # no clipping for drawing outside plot
+legend(41,70,
+       rownames(uniquePerCutoff), fill=toolColors[rownames(uniquePerCutoff)], ncol=1, cex=0.62)
+dev.off()
 
-# Total solved at cutoff.
-length(unique(unlist(withinTopX)))
+# Removes variables specific to this section.
+rm(cutoffLimit,uniquePerCutoff)
 
 ###
 ### Figure 3: Extra analysis to show practical value.
 ###
 
-# load NCBI symbols of CGD genes and convert to vector
-cgd <- as.character(scan(paste0(baseDir, "cgd-ids_2020-02-04.csv"), sep=","))
-
-# the names of the dataframes used as inputs
-tools <- c("gado", "vibe", "hiphive", "phenix", "pubcf", "phenomizer", "phenotips", "amelie")
-
-# Generate splitted genes for all tools: [[tool]][[lovd]][genes]
-setClass("suggestedGenes", representation(genes="vector"))
-toolOutputSplitted <- sapply(tools, function(tool) {
-  toolData <- get(tool)
-  sapply(rownames(toolData), function(lovd, toolData) {
-    new("suggestedGenes", genes=strsplit(toolData[lovd,"suggested_genes"], ","))
-  }, toolData=toolData)
-}, simplify=FALSE)
-
 # Defines number of runs.
-runs <- 40
+runs <- 19
 
 # Defines number of spiking genes.
-spikingGenes <- 49
+spikingGenes <- 19
 
 # Set seed for pseudo-random numbers for reproducibility.
 # Don't forget to reset seed when re-running code!!!
@@ -502,8 +520,9 @@ enrichedScores <- sapply(1:runs, function(x, spikingGenes) {
       geneSetMatches <- match(geneSet, toolOutputSplitted[[toolName]][[lovd]]@genes[[1]])
       # If benchmark gene is not found, returns adjusted score.
       if(is.na(geneSetMatches[1])){
-        return(mean(c(sum(!is.na(geneSetMatches)), length(geneSet))))
+        #return(mean(c(sum(!is.na(geneSetMatches)), length(geneSet))))
         #return(length(geneSet))
+        return(NA)
       }
       # Orders the found matches (NA=LAST).
       geneSetOrdered <- geneSet[order(geneSetMatches)]
@@ -518,8 +537,48 @@ MedianScores <- matrix(sapply(1:length(enrichedScores[[1]]), function(x) {
   median(sapply(enrichedScores, "[[", x))
 }), ncol=8, dimnames=list(1:nrow(benchmarkData), names(toolOutputSplitted)))
 
-# Create boxplot.
-melted <- melt(MedianScores)
-colnames(melted) <- c("case", "tool", "value")
-boxplot(value~tool, data=melted, ylim=c(0,30), outline=FALSE, las=2)
-beeswarm(value~tool, data=melted, add=TRUE, corral="wrap")
+# Genes found per cutoff.
+foundPerCutoff <- sapply(1:(spikingGenes+1), function(x) {
+  apply(MedianScores <= x,2,sum, na.rm=TRUE)
+})
+colnames(foundPerCutoff) <- 1:(spikingGenes+1)
+
+# Plot preperations.
+melted <- melt(t(foundPerCutoff))
+colnames(melted) <- c("cutoff", "tool", "value")
+
+# Plot figure.
+ggplot() +
+  geom_line(data = melted, aes(x = cutoff, y = value, color = tool), size=1) +
+  geom_point(data = melted, aes(x = cutoff, y = value, color = tool), size=3) +
+  scale_color_manual(values = toolColors) +
+  scale_x_continuous(breaks = seq(1,20,1), limits = c(1,20)) +
+  theme(text = element_text(size=20), legend.title=element_blank(), legend.position = c(0.8, 0.62),
+        panel.background = element_blank(), legend.key = element_blank(), legend.background = element_blank(),
+        legend.text = element_text(size=12), legend.key.size = unit(1, "line")) +
+  labs(x = "Gene rank in simulated spiked-in clinical gene sets", y = "Number of causal genes detected") +
+  ggSaveCustom("Figure3", width=8, height=5)
+
+# Removes variables specific to this section.
+rm(runs,spikingGenes,enrichedScores,MedianScores,foundPerCutoff,melted)
+
+
+
+###
+### Gene overrepresentation in vibe
+###
+
+cutoff <- 10
+uniqueGenesInTopOutput <- unique(as.vector(sapply(toolOutputSplitted$VIBE, function(x){x@genes[[1]][1:cutoff]})))
+
+foundPositionsTopGenes <- sapply(uniqueGenesInTopOutput, function(gene, vibeToolOutput) {
+  sapply(vibeToolOutput, function(toolOutput, gene){
+    match(gene, toolOutput@genes[[1]])
+  }, gene=gene)
+}, vibeToolOutput=toolOutputSplitted$VIBE)
+
+timesGeneFoundinTop <- apply(foundPositionsTopGenes, 2, function(x) {length(which(x <=10))})
+sort(timesGeneFoundinTop, decreasing=T)
+
+# Removes variables specific to this section.
+rm(cutoff,uniqueGenesInTopOutput,foundPositionsTopGenes,timesGeneFoundinTop)
