@@ -38,7 +38,7 @@ imgExportDir <- '~/Desktop/zenodo_download/out/'
 ### Libraries  ###
 ##################
 
-library(dplyr)
+library(plyr)
 library(reshape2)
 library(ggplot2)
 library(ggdendro)
@@ -380,6 +380,9 @@ dataToPlot <- melt(dataToPlot, id.vars="id",
                    variable.name="tool",
                    value.name="absPosition")
 
+# Renames "PubCaseF." to "PubCF."
+#dataToPlot$tool <- revalue(dataToPlot$tool, c("PubCaseF."="PubCF."))
+
 # Orders data based on clustering.
 dataToPlot$id <- factor(dataToPlot$id,
                         levels = dataToPlot$id[yClust$order],
@@ -415,7 +418,8 @@ hmPlot <- ggplot(dataToPlot, aes(x=tool, y=id, colour="")) + # colour is to tric
         axis.text.x=element_text(colour="black", margin=margin(b=5)),
         axis.ticks.x=element_blank(),
         axis.text.y=element_blank(), # Can be commented to compare with yClustPlot
-        axis.ticks.y=element_blank()) +
+        axis.ticks.y=element_blank(),
+        axis.text=element_text(size=7)) +
   labs(x="Gene prioritization tool", y="Causal genes in patient cases",
        fill="Causal gene rank\n1=best, 40k=worst",
        colour="Missed gene\n(not found)") +
