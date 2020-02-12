@@ -596,6 +596,8 @@ foundPositionsTopGenes <- sapply(uniqueGenesInTopOutput, function(gene, vibeTool
 }, vibeToolOutput=toolOutputSplitted$VIBE)
 
 timesGeneFoundinTop <- apply(foundPositionsTopGenes, 2, function(x) {length(which(x <=10))})
+
+# numbers in Discussion section of manuscript (first 2)
 sort(timesGeneFoundinTop, decreasing=T)
 
 # Removes variables specific to this section.
@@ -619,6 +621,9 @@ dimnames(uniquePerCutoff) <- list(colnames(positionResults), 1:cutoffLimit)
 
 # Total unique per cutoff.
 apply(uniquePerCutoff, 2, sum)
+
+# numbers in Result section of manuscript
+uniquePerCutoff[,20]
 
 # Plot figure.
 initializeGraphicsDevice('unique_per_cutoff', width=8, height=4)
