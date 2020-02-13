@@ -86,17 +86,9 @@ There are several files used among these scripts. These include:
     python3 AmelieBenchmarkFileGenerator.py amelie_output/ amelie_results.tsv
     ```
 
-#### Gene Network
+#### GADO
 
-1. Run benchmark:
-    ```
-    python3 GeneNetworkBenchmarkRunner.py hp.obo benchmark_data.tsv genenetwork_output/
-    ```
-
-2. Process benchmark output:
-    ```
-    python3 GeneNetworkBenchmarkFileGenerator.py genenetwork_output/ genenetwork_results.tsv
-    ```
+We used the stand-alone commandline version GADO (v 1.0.1), available at: https://github.com/molgenis/systemsgenetics/wiki/GADO-Command-line. We accepted all automatically suggested alternative HPO terms in cases that the supplied HPO term could not be used. We have used the prediction matrix `hpo_predictions_sigOnly_spiked_01_02_2018`.
 
 #### Phenomizer
 
