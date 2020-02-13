@@ -44,10 +44,6 @@ such as for vibe where there is a `ParallelBashScriptsGenerator` instead. So ple
     * __Info:__ Uses the [query_phenomizer][query_phenomizer] python tool to process all benchmark data.
     * __Important:__ [query_phenomizer][query_phenomizer] needs to be installed on the system. Additionally, an account
     is needed for running [query_phenomizer][query_phenomizer].
-* __`PhenotipsBenchmarkRunner.py`__
-    * __Info:__ Uses the API of Phenotips to upload the benchmark dataset and then download the results.
-    * __Important:__ A phenotips instince to which can be connected is required. Please refer to the
-    [Phenotips download page][phenotips_download] for more information.
 * __`VibeBenchmarkFileGenerator.py`__
     * __Info:__ Converts the output from `VibeBenchmarkParallelBashScriptsGenerator.py` for usage in `BenchmarkResultsProcessor.R`.
 * __`VibeBenchmarkParallelBashScriptsGenerator.py`__
@@ -108,12 +104,8 @@ We used the stand-alone commandline version GADO (v 1.0.1), available at: https:
 
 #### Phenotips
 
-1. Install [phenotips][phenotips_download].
+**IMPORTANT**: Starting of January 2020, Phenotips does not offer a stand-alone downloadable solution anymore and requires a paid cloud subscription to be used, as can be read [here](https://phenotips.com/blog/new-year-new-website.html). Therefore, this benchmark has become obsolete.
 
-2. Run benchmark:
-    ```
-    python3 PhenotipsBenchmarkRunner.py http://localhost:8080/ username hp.obo benchmark_data.tsv phenotips_results.tsv
-    ```
 
 #### Vibe
 
