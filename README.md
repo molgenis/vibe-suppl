@@ -1,4 +1,5 @@
 # vibe-suppl
+
 This repo contains supplemental files regarding the Java application found [here][vibe]. Note that these are in no way needed to use the vibe tool, but were used to generate additional information (such as benchmarking). They were created with the assumption that they are used exactly in the way they are meant to be used, so while certain checks/validations might be present, using these scripts in the wrong way might result in weird behavior.
 
 ## Paper
@@ -182,6 +183,20 @@ python3 BenchmarkFileGeneSymbolToIdConverter.py gado_results.tsv benchmark_file_
     python3 VibeBenchmarkFileGenerator.py results/ vibe_results.tsv none
     ```
 
+### LIRICAL
+
+1. [Download][lirical_download]/[prepare][lirical_prepare] lirical.
+
+2. Download/install biobesu.
+
+3. Run biobesu:
+
+   ```
+   biobesu hpo_generank lirical --jar /path/to/LIRICAL.jar --hpo /path/to/hp_2018-03-08.obo --input /path/to/benchmark_data.tsv --output /path/to/output/folder/ --lirical_data /path/to/lirical/data/folder/ --runner_data /path/to/folder/to/store/temporary/data
+   ```
+
+4. From the output folder, retrieve `lirical_omim_gene_id.tsv`, rename it to `lirical.tsv` and replace the header line with `lovd\tsuggested_genes` (where `\t` indicates a tab).
+
 [vibe]:https://github.com/molgenis/vibe
 [vibe_preperations]:https://github.com/molgenis/vibe/#quickstart
 [hgnc_complete]:http://ftp.ebi.ac.uk/pub/databases/genenames/new/tsv/hgnc_complete_set.txt
@@ -190,4 +205,7 @@ python3 BenchmarkFileGeneSymbolToIdConverter.py gado_results.tsv benchmark_file_
 
 [hpo_obo_current]:http://purl.obolibrary.org/obo/hp.obo
 [hpo_obo]:https://raw.githubusercontent.com/obophenotype/human-phenotype-ontology/2f6309173883d5d342849388c74bd986a2c0092c/hp.obo
+
+[lirical_download]: https://github.com/TheJacksonLaboratory/LIRICAL/releases/tag/v1.3.0
+[lirical_prepare]: https://lirical.readthedocs.io/en/latest/setup.html#the-download-command
 
