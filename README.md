@@ -187,7 +187,7 @@ python3 BenchmarkFileGeneSymbolToIdConverter.py gado_results.tsv benchmark_file_
 
 1. [Download][lirical_download]/[prepare][lirical_prepare] lirical.
 
-2. Download/install biobesu.
+2. [Prepare][biobesu_github] biobesu.
 
 3. Run biobesu:
 
@@ -209,3 +209,4 @@ python3 BenchmarkFileGeneSymbolToIdConverter.py gado_results.tsv benchmark_file_
 [lirical_download]: https://github.com/TheJacksonLaboratory/LIRICAL/releases/tag/v1.3.0
 [lirical_prepare]: https://lirical.readthedocs.io/en/latest/setup.html#the-download-command
 
+[biobesu_github]: https://github.com/molgenis/biobesu
