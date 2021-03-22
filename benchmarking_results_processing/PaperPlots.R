@@ -25,10 +25,11 @@
 # - phenotips.tsv
 # - pubcasefinder.tsv
 # - vibe.tsv
-baseDir <- '~/Desktop/zenodo_download/'
+# - lirical.tsv
+baseDir <- "~/Desktop/zenodo_download/"
 
 # Directory to write the output images to (be sure that directoy exists).
-imgExportDir <- '~/Desktop/zenodo_download/out/'
+imgExportDir <- "~/Desktop/zenodo_download/out/"
 
 
 
@@ -45,6 +46,7 @@ library(ggplot2)
 library(ggdendro)
 library(cowplot)
 library(grid)
+library(rcartocolor)
 
 
 
@@ -255,6 +257,7 @@ hiphive <- sortRows(readResultFile("hiphive.tsv"))
 phenix <- sortRows(readResultFile("phenix.tsv"))
 pubcf <- sortRows(readResultFile("pubcasefinder.tsv"))
 vibe <- sortRows(readResultFile("vibe.tsv"))
+lirical <- sortRows(readResultFile("lirical.tsv"))
 
 # Calculate absolute positions. This is done by processing benchmarkData row-by-row
 # and therefore the LOVD row order of positionResults is equal to that of benchmarkData.
@@ -265,7 +268,8 @@ positionResults <- data.frame("AMELIE"=resultsPositionCalculator(benchmarkData, 
                               "VIBE"=resultsPositionCalculator(benchmarkData, vibe),
                               "hiPHIVE"=resultsPositionCalculator(benchmarkData, hiphive),
                               "PubCaseF."=resultsPositionCalculator(benchmarkData, pubcf),
-                              "PhenIX"=resultsPositionCalculator(benchmarkData, phenix))
+                              "PhenIX"=resultsPositionCalculator(benchmarkData, phenix),
+                              "LIRICAL"=resultsPositionCalculator(benchmarkData, lirical))
 
 # Calculate total number of genes.
 totalResults <- data.frame("AMELIE"=calculateTotalGenesFound(amelie),
@@ -276,13 +280,15 @@ totalResults <- data.frame("AMELIE"=calculateTotalGenesFound(amelie),
                            "hiPHIVE"=calculateTotalGenesFound(hiphive),
                            "PubCaseF."=calculateTotalGenesFound(pubcf),
                            "PhenIX"=calculateTotalGenesFound(phenix),
+                           "LIRICAL"=calculateTotalGenesFound(lirical),
                            row.names=rownames(amelie))
 
 # Replicates some of the totalResults so that size is equal to positionResults.
 totalResults <- totalResults[benchmarkData$lovd,]
 
-# The names of the dataframes used as inputs. Make sure to use sae order as colnames(positionResults)!!!
-tools <- c("amelie", "gado", "phenomizer", "phenotips", "vibe", "hiphive", "pubcf", "phenix")
+# Make sure to use same order as colnames(positionResults)!!!
+tools <- c("amelie", "gado", "phenomizer", "phenotips", "vibe", "hiphive", "pubcf", "phenix", "lirical") # Names of variables used as input.
+toolNames <- c("AMELIE", "GADO", "Phenomizer", "Phenotips", "VIBE", "hiPHIVE", "PubCaseF.", "PhenIX", "LIRICAL") # Names of the tools within the dataframe.
 
 # Generate splitted genes for all tools: [[tool]][[lovd]]@genes[[1]]
 setClass("suggestedGenes", representation(genes="vector"))
@@ -305,20 +311,15 @@ rownames(amelie) == rownames(gado) &&
   rownames(phenotips) == rownames(vibe) &&
   rownames(vibe) == rownames(hiphive) &&
   rownames(hiphive) == rownames(phenix) &&
-  rownames(phenix) == rownames(pubcf)
+  rownames(phenix) == rownames(pubcf) &&
+  rownames(pubcf) == rownames(lirical)
 
 # Check whether there is any phenotype set for which no single gene was found.
 any(is.na(totalResults))
 
 # Tool colors
-toolColors <- c("Phenomizer" = "#CC79A7",
-             "Phenotips" = "#D55E00",
-             "PhenIX" = "#009E73",
-             "AMELIE" = "#F0E442",
-             "VIBE" = "#0072B2",
-             "PubCaseF." = "#56B4E9",
-             "hiPHIVE" = "#E69F00",
-             "GADO" = "#505050") # http://jfly.uni-koeln.de/color/#pallet
+toolColors <- carto_pal(9, "Safe")
+names(toolColors) <- toolNames
 
 ##############################
 ########## FIGURE 1 ##########
@@ -340,8 +341,8 @@ gd <- posRelM %>%
 toolNaRanks <- aggregate(rank ~ tool, data=posRelM, function(x) {sum(is.na(x))}, na.action = NULL)
 gd$NAs <- paste(toolNaRanks$tool, " (", toolNaRanks$rank, " missed)", sep="")
 
-gd$labX <- c(250,   3100,    10,    10,   250,  180,   10,   10)
-gd$labY <- c(30000, 30000, 30000, 3000, 10000, 3000, 10000, 1000)
+gd$labX <- c(160,   2400,    5,    5,   70,  120,   5,   5, 140)
+gd$labY <- c(30000, 30000, 30000, 3000, 1000, 3000, 10000, 1000, 10000)
 
 # Plotting figure.
 ggplot() +
@@ -446,7 +447,7 @@ hmInfoPlot <- ggdraw() +
 hmPlot <- hmPlot + theme(legend.position = "none")
 
 # Generate image.
-initializeGraphicsDevice('Figure2', width=7, height=6)
+initializeGraphicsDevice("Figure2", width=7, height=6)
 plot_grid(
   xClustPlot, hmInfoPlot,
   hmPlot, yClustPlot,
@@ -516,7 +517,7 @@ enrichedScores <- sapply(1:runs, function(x, spikingGenes) {
 # Calculate median per tool/case combination.
 MedianScores <- matrix(sapply(1:length(enrichedScores[[1]]), function(x) {
   median(sapply(enrichedScores, "[[", x))
-}), ncol=8, dimnames=list(1:nrow(benchmarkData), names(toolOutputSplitted)))
+}), ncol=ncol(positionResults), dimnames=list(1:nrow(benchmarkData), names(toolOutputSplitted)))
 
 # Genes found per cutoff.
 foundPerCutoff <- sapply(1:(spikingGenes+1), function(x) {
@@ -626,7 +627,7 @@ apply(uniquePerCutoff, 2, sum)
 uniquePerCutoff[,20]
 
 # Plot figure.
-initializeGraphicsDevice('unique_per_cutoff', width=8, height=4)
+initializeGraphicsDevice("unique_per_cutoff", width=8, height=4)
 par(mar=c(5.1, 4.1, 4.1, 5.1))
 barplot(uniquePerCutoff, col=toolColors[rownames(uniquePerCutoff)], space=FALSE, border=NA, las=1,
         xlab="cutoff", ylab="percentage unique hits")
