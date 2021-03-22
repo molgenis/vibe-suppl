@@ -29,37 +29,37 @@ def parseCommandLine():
 
     # Defines command line.
     parser = ArgumentParser()
-    parser.add_argument("hpo", help="he HPO .obo file containing phenotype id's/names")
-    parser.add_argument("tsv", help="the benchmarking .tsv file where the first column is the sample ID and the 5th column 1 or more phenotypes (separated by a ';')")
-    parser.add_argument("out", help="the file to write output to")
+    parser.add_argument('hpo', help='he HPO .obo file containing phenotype id\'s/names')
+    parser.add_argument('tsv', help='the benchmarking .tsv file where the first column is the sample ID and the 5th column 1 or more phenotypes (separated by a ";")')
+    parser.add_argument('out', help='the file to write output to')
 
     # Processes command line.
     args = parser.parse_args()
 
     # Validates command line.
-    if not args.hpo.endswith(".obo"):
+    if not args.hpo.endswith('.obo'):
         parser.error('"' + args.hpo.split('/')[-1] + '" is not an .obo file')
     if not isfile(args.hpo):
         parser.error('"' + args.hpo.split('/')[-1] + '" is not an existing file')
 
-    if not args.tsv.endswith(".tsv"):
+    if not args.tsv.endswith('.tsv'):
         parser.error('"' + args.tsv.split('/')[-1] + '" is not a .tsv file')
     if not isfile(args.tsv):
         parser.error('"' + args.tsv.split('/')[-1] + '" is not an existing file')
 
-    if not args.out.endswith(".tsv"):
+    if not args.out.endswith('.tsv'):
         parser.error('"' + args.out.split('/')[-1] + '" is not a .tsv file')
 
     return args
 
 def convertBenchmarkFile(benchmarkData, outFile, phenotypeIdsByName):
-    fileWriter = open(outFile, "w")
+    fileWriter = open(outFile, 'w')
 
     # Goes through the benchmarking file.
     for i, line in enumerate(open(benchmarkData)):
         # Skips first line (header).
         if i == 0:
-            fileWriter.write("lovd\tgene\thpo_terms\n")
+            fileWriter.write('lovd\tgene\thpo_terms\n')
             continue
 
         # Splits the values on their separator.
@@ -74,7 +74,7 @@ def convertBenchmarkFile(benchmarkData, outFile, phenotypeIdsByName):
         hpoColumn = ';'.join(hpoCodes)
 
         # Joins line together again.
-        fileWriter.write('\t'.join([line[0], line[1], hpoColumn]) + "\n")
+        fileWriter.write('\t'.join([line[0], line[1], hpoColumn]) + '\n')
 
     fileWriter.flush()
     fileWriter.close()

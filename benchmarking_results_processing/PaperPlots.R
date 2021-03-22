@@ -26,10 +26,10 @@
 # - pubcasefinder.tsv
 # - vibe.tsv
 # - lirical.tsv
-baseDir <- '~/Desktop/zenodo_download/'
+baseDir <- "~/Desktop/zenodo_download/"
 
 # Directory to write the output images to (be sure that directoy exists).
-imgExportDir <- '~/Desktop/zenodo_download/out/'
+imgExportDir <- "~/Desktop/zenodo_download/out/"
 
 
 
@@ -447,7 +447,7 @@ hmInfoPlot <- ggdraw() +
 hmPlot <- hmPlot + theme(legend.position = "none")
 
 # Generate image.
-initializeGraphicsDevice('Figure2', width=7, height=6)
+initializeGraphicsDevice("Figure2", width=7, height=6)
 plot_grid(
   xClustPlot, hmInfoPlot,
   hmPlot, yClustPlot,
@@ -627,7 +627,7 @@ apply(uniquePerCutoff, 2, sum)
 uniquePerCutoff[,20]
 
 # Plot figure.
-initializeGraphicsDevice('unique_per_cutoff', width=8, height=4)
+initializeGraphicsDevice("unique_per_cutoff", width=8, height=4)
 par(mar=c(5.1, 4.1, 4.1, 5.1))
 barplot(uniquePerCutoff, col=toolColors[rownames(uniquePerCutoff)], space=FALSE, border=NA, las=1,
         xlab="cutoff", ylab="percentage unique hits")
